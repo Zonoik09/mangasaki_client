@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController();
 
   bool _isLoginView = true;
+  late bool _isMobile;
 
   @override
   void initState() {
@@ -48,147 +49,65 @@ class _LoginScreenState extends State<LoginScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
+    _isMobile =
+        screenWidth < 800; // Se considera móvil si el ancho es menor a 800px
+
     return SafeArea(
       child: Scaffold(
-        body: Row(
+        body: Stack(
           children: [
-            // Sección del GIF (75% del ancho)
-            SizedBox(
-              width: screenWidth * 0.75,
-              height: screenHeight,
+            // Fondo GIF
+            Positioned.fill(
               child: Image.asset(
                 'assets/images/background2.gif',
                 fit: BoxFit.cover,
               ),
             ),
+            _isMobile
+                ? _buildMobileLayout(screenWidth, screenHeight)
+                : _buildDesktopLayout(screenWidth, screenHeight),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Sección del Login/Registro (25% del ancho)
-            Container(
-              width: screenWidth * 0.25,
-              height: screenHeight,
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                        width: double.infinity,
-                        height: MediaQuery.of(context).size.height / 4,
-                        child: Image.asset('assets/images/logo.png')),
-
-                    const SizedBox(height: 150),
-                    // Sección de Login o Registro
-                    if (_isLoginView) ...[
-                      _buildLoginFields(),
-                    ] else ...[
-                      _buildRegisterFields(),
-                    ],
-
-                    const SizedBox(height: 35),
-                    Center(
-                      child: GestureDetector(
-                        onTap: () async {
-                          if (_isLoginView) {
-                            if (_usernameController.text.isEmpty ||
-                                _passwordController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Todos los campos son obligatorios.',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-                          } else {
-                            if (_usernameController.text.isEmpty ||
-                                _phoneController.text.isEmpty ||
-                                _passwordController.text.isEmpty ||
-                                _confirmPasswordController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Todos los campos son obligatorios.',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (_passwordController.text !=
-                                _confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Las contraseñas no coinciden.',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-                          }
-                        },
-                        child: Container(
-                          width: screenWidth * 0.15,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Color.fromARGB(255, 60, 111, 150),
-                          ),
-                          child: Center(
-                            child: Text(
-                              _isLoginView ? 'LOGIN' : 'REGISTER',
-                              style: GoogleFonts.inter(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_isLoginView) const SizedBox(height: 350),
-                    if (!_isLoginView) const SizedBox(height: 220),
-                    // Enlace para cambiar entre Login y Register
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isLoginView = !_isLoginView;
-                        });
-                      },
-                      child: Center(
-                        // Centra el texto dentro del GestureDetector
-                        child: Text(
-                          _isLoginView
-                              ? 'New here? Sign up now!'
-                              : 'Already have an account? Log in here!',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            color: Color.fromARGB(255, 60, 111, 150),
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
+  Widget _buildMobileLayout(double screenWidth, double screenHeight) {
+    return Center(
+      child: Container(
+        width: screenWidth * 0.85,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.8), // Fondo blanco con opacidad
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: screenWidth * 0.5,
+              height: 100,
+              child: Image.asset('assets/images/logo.png'),
+            ),
+            const SizedBox(height: 20),
+            if (_isLoginView) _buildLoginFields() else _buildRegisterFields(),
+            const SizedBox(height: 20),
+            _buildActionButton(screenWidth),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isLoginView = !_isLoginView;
+                });
+              },
+              child: Text(
+                _isLoginView
+                    ? 'New here? Sign up now!'
+                    : 'Already have an account? Log in here!',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: Color.fromARGB(255, 60, 111, 150),
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ),
@@ -198,46 +117,59 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginFields() {
-    return Column(
+  Widget _buildDesktopLayout(double screenWidth, double screenHeight) {
+    return Row(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _usernameController,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.person,
-                color: Colors.white,
-              ),
-              hintText: 'USERNAME OR PHONE',
-              hintStyle: TextStyle(color: Colors.white),
-            ),
+        SizedBox(
+          width: screenWidth * 0.75,
+          height: screenHeight,
+          child: Image.asset(
+            'assets/images/background2.gif',
+            fit: BoxFit.cover,
           ),
         ),
-        const SizedBox(height: 15),
         Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _passwordController,
-            obscureText: true,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.lock,
-                color: Colors.white,
-              ),
-              hintText: 'PASSWORD',
-              hintStyle: TextStyle(color: Colors.white),
+          width: screenWidth * 0.25,
+          height: screenHeight,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(
+                    width: double.infinity,
+                    height: screenHeight / 4,
+                    child: Image.asset('assets/images/logo.png')),
+                const SizedBox(height: 70),
+                if (_isLoginView)
+                  _buildLoginFields()
+                else
+                  _buildRegisterFields(),
+                const SizedBox(height: 35),
+                Center(child: _buildActionButton(screenWidth)),
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isLoginView = !_isLoginView;
+                    });
+                  },
+                  child: Center(
+                    child: Text(
+                      _isLoginView
+                          ? 'New here? Sign up now!'
+                          : 'Already have an account? Log in here!',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: Color.fromARGB(255, 60, 111, 150),
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -245,91 +177,111 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildActionButton(double screenWidth) {
+    return GestureDetector(
+      onTap: () async {
+        if (_isLoginView) {
+          if (_usernameController.text.isEmpty ||
+              _passwordController.text.isEmpty) {
+            _showErrorSnackbar('Todos los campos son obligatorios.');
+            return;
+          }
+        } else {
+          if (_usernameController.text.isEmpty ||
+              _phoneController.text.isEmpty ||
+              _passwordController.text.isEmpty ||
+              _confirmPasswordController.text.isEmpty) {
+            _showErrorSnackbar('Todos los campos son obligatorios.');
+            return;
+          }
+          if (_passwordController.text != _confirmPasswordController.text) {
+            _showErrorSnackbar('Las contraseñas no coinciden.');
+            return;
+          }
+        }
+      },
+      child: Container(
+        width: _isMobile ? screenWidth * 0.6 : screenWidth * 0.15,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          color: Color.fromARGB(255, 60, 111, 150),
+        ),
+        child: Center(
+          child: Text(
+            _isLoginView ? 'LOGIN' : 'REGISTER',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Widget _buildLoginFields() {
+    return Column(
+      children: [
+        _buildTextField(_usernameController, 'USERNAME OR PHONE', Icons.person),
+        const SizedBox(height: 15),
+        _buildTextField(_passwordController, 'PASSWORD', Icons.lock,
+            isPassword: true),
+      ],
+    );
+  }
+
   Widget _buildRegisterFields() {
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _usernameController,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.person,
-                color: Colors.white,
-              ),
-              hintText: 'USERNAME',
-              hintStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
+        _buildTextField(_usernameController, 'USERNAME', Icons.person),
         const SizedBox(height: 15),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _phoneController,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.phone,
-                color: Colors.white,
-              ),
-              hintText: 'PHONE',
-              hintStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
+        _buildTextField(_phoneController, 'PHONE', Icons.phone),
         const SizedBox(height: 15),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _passwordController,
-            obscureText: true,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.lock,
-                color: Colors.white,
-              ),
-              hintText: 'PASSWORD',
-              hintStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
+        _buildTextField(_passwordController, 'PASSWORD', Icons.lock,
+            isPassword: true),
         const SizedBox(height: 15),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
-          ),
-          child: TextField(
-            controller: _confirmPasswordController,
-            obscureText: true,
-            style: GoogleFonts.inter(color: Colors.white),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                Icons.lock,
-                color: Colors.white,
-              ),
-              hintText: 'CONFIRM PASSWORD',
-              hintStyle: TextStyle(color: Colors.white),
-            ),
-          ),
-        ),
+        _buildTextField(
+            _confirmPasswordController, 'CONFIRM PASSWORD', Icons.lock,
+            isPassword: true),
       ],
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String hint, IconData icon,
+      {bool isPassword = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.black,
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword,
+        style: GoogleFonts.inter(color: Colors.white),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          prefixIcon: Icon(icon, color: Colors.white),
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white),
+        ),
+      ),
     );
   }
 }
