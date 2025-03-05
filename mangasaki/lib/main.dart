@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'views/login_view.dart';
+import 'views/main_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,7 +13,7 @@ void main() async {
 
     // Configurar propiedades iniciales de la ventana
     WindowOptions windowOptions = const WindowOptions(
-      title: 'ImagIA',
+      title: 'Mangasaki!',
       size: Size(600, 800),
       minimumSize: Size(600, 800),
     );
@@ -49,6 +49,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: LoginScreen());
+    //return const Scaffold(body: LoginScreen());
+    return Scaffold(body: MainView());
   }
 }
