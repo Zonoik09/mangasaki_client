@@ -36,29 +36,40 @@ class CW_home extends StatelessWidget {
             height: 150.0, // Puedes ajustar el tamaño
           ),
           SizedBox(width: 20), // Espacio entre la imagen y el texto
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Título en blanco y en negrita
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 22, // Aumenté el tamaño del texto
-                  fontWeight: FontWeight.bold, // Texto en negrita
-                  color: Colors.white, // Color blanco para el título
+          Expanded(
+            // Aquí usamos Expanded para que el texto ocupe el espacio restante
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título en blanco y en negrita
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 22, // Aumenté el tamaño del texto
+                    fontWeight: FontWeight.bold, // Texto en negrita
+                    color: Colors.white, // Color blanco para el título
+                  ),
+                  maxLines:
+                      2, // Limita el número de líneas en el título si es necesario
+                  overflow: TextOverflow
+                      .ellipsis, // Agrega "..." si el texto es más largo de lo que cabe
                 ),
-              ),
-              SizedBox(height: 8), // Espacio entre el título y el subtítulo
-              // Subtítulo debajo del título, en blanco también
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 16, // Tamaño adecuado para el subtítulo
-                  fontWeight: FontWeight.normal, // Texto normal
-                  color: Colors.white, // Color blanco para el subtítulo
+                SizedBox(height: 8), // Espacio entre el título y el subtítulo
+                // Subtítulo debajo del título, en blanco también
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 16, // Tamaño adecuado para el subtítulo
+                    fontWeight: FontWeight.normal, // Texto normal
+                    color: Colors.white, // Color blanco para el subtítulo
+                  ),
+                  maxLines:
+                      4, // Limita el número de líneas en el subtítulo si es necesario
+                  overflow: TextOverflow
+                      .ellipsis, // Agrega "..." si el texto es más largo de lo que cabe
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

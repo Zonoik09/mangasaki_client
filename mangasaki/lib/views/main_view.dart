@@ -35,15 +35,32 @@ class _MainViewState extends State<MainView> {
           ),
           child: Column(
             children: [
-              // Primer sección (parte superior) - 50% de la altura
+              // Primer sección (parte superior)
               Container(
-                height: MediaQuery.of(context).size.height * 0.30,
-                child: CW_home(
-                  icon: "assets/images/logo.png",
-                  title: "Logo",
-                  subtitle: "Este es el logo de la aplicación",
-                ),
-              ),
+                  height: MediaQuery.of(context).size.height * 0.30,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 50),
+                      Text(
+                        "The Next Generation of Manga Platform",
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 25),
+                      Text(
+                        "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  )),
               // Segunda sección (parte inferior) - 50% de la altura
               Container(
                 height: MediaQuery.of(context).size.height * 0.25,
@@ -55,8 +72,9 @@ class _MainViewState extends State<MainView> {
                       height: MediaQuery.of(context).size.height * 0.5,
                       child: CW_home(
                         icon: "assets/images/stats.svg",
-                        title: "Logo",
-                        subtitle: "Este es el logo de la aplicación",
+                        title: "Discover and save your favorite mangas",
+                        subtitle:
+                            "Explora una amplia colección de mangas, sigue los capítulos de tus series favoritas y guárdalos para tenerlos siempre a tu alcance. ¡Lleva tu experiencia de lectura al siguiente nivel y nunca pierdas el hilo de tu manga preferido!",
                       ),
                     ),
                     // Columna derecha (50% del ancho)
@@ -65,8 +83,9 @@ class _MainViewState extends State<MainView> {
                       height: MediaQuery.of(context).size.height * 0.50,
                       child: CW_home(
                         icon: "assets/images/social.svg",
-                        title: "Logo",
-                        subtitle: "Este es el logo de la aplicación",
+                        title: "Join the community!",
+                        subtitle:
+                            "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
                       ),
                     ),
                   ],
@@ -82,8 +101,9 @@ class _MainViewState extends State<MainView> {
                       height: MediaQuery.of(context).size.height * 0.5,
                       child: CW_home(
                         icon: "assets/images/apps.svg",
-                        title: "Logo",
-                        subtitle: "Este es el logo de la aplicación",
+                        title: "Bring Mangasaki anywhere",
+                        subtitle:
+                            "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
                       ),
                     ),
                     // Columna derecha (50% del ancho)
@@ -92,8 +112,9 @@ class _MainViewState extends State<MainView> {
                       height: MediaQuery.of(context).size.height * 0.50,
                       child: CW_home(
                         icon: "assets/images/custom.svg",
-                        title: "Logo",
-                        subtitle: "Este es el logo de la aplicación",
+                        title: "Customized to your liking!",
+                        subtitle:
+                            "We have different themes to change the style of the app!",
                       ),
                     ),
                   ],

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'views/login_view.dart';
 import 'views/main_view.dart';
 
 void main() async {

@@ -14,6 +14,8 @@ dependencies:
   desktop: ^5.1.3
   google_fonts: ^6.2.1
   flutter_svg: ^1.0.0
+  shared_preferences: ^2.5.2
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_test:

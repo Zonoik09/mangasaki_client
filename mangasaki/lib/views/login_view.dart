@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../connection/api_service.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -181,12 +183,30 @@ class _LoginScreenState extends State<LoginScreen> {
     return GestureDetector(
       onTap: () async {
         if (_isLoginView) {
+          // Validación para login
           if (_usernameController.text.isEmpty ||
               _passwordController.text.isEmpty) {
             _showErrorSnackbar('Todos los campos son obligatorios.');
             return;
           }
+
+          // Llamada al login (asumirás que tienes el ApiService importado)
+          final loginResponse = await ApiService().login(
+            _usernameController.text,
+            _passwordController.text,
+            context,
+          );
+
+          // Aquí puedes hacer algo con la respuesta de login si es necesario.
+          if (loginResponse.isNotEmpty) {
+            // Ejemplo de uso de los datos de la respuesta:
+            print('Login exitoso');
+            // Aquí deberías navegar a la siguiente pantalla si el login fue exitoso
+          } else {
+            _showErrorSnackbar('Error en el login. Verifica tus credenciales.');
+          }
         } else {
+          // Para el caso de registro
           if (_usernameController.text.isEmpty ||
               _phoneController.text.isEmpty ||
               _passwordController.text.isEmpty ||
@@ -194,10 +214,14 @@ class _LoginScreenState extends State<LoginScreen> {
             _showErrorSnackbar('Todos los campos son obligatorios.');
             return;
           }
+
           if (_passwordController.text != _confirmPasswordController.text) {
             _showErrorSnackbar('Las contraseñas no coinciden.');
             return;
           }
+
+          // Aquí puedes llamar a la API de registro, pero por ahora solo haré un print
+          print('register');
         }
       },
       child: Container(
