@@ -220,8 +220,21 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
 
-          // Aquí puedes llamar a la API de registro, pero por ahora solo haré un print
-          print('register');
+          // Llamada al register (asumirás que tienes el ApiService importado)
+          final registerResponse = await ApiService().register(
+            _usernameController.text,
+            _passwordController.text,
+            _confirmPasswordController.text,
+            _phoneController.text, // Se pasa el valor de teléfono correctamente
+            context,
+          );
+          if (registerResponse.isNotEmpty) {
+            // Aquí puedes hacer algo con la respuesta de registro
+            print('Registro exitoso');
+            // Ejemplo: Navegar a otra pantalla
+          } else {
+            _showErrorSnackbar('Error en el registro. Intenta de nuevo.');
+          }
         }
       },
       child: Container(
