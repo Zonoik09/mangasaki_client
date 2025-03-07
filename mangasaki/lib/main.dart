@@ -15,7 +15,7 @@ void main() async {
     // Configurar propiedades iniciales de la ventana
     WindowOptions windowOptions = const WindowOptions(
       title: 'Mangasaki!',
-      size: Size(600, 800),
+      size: Size(1280, 720),
       minimumSize: Size(600, 800),
     );
 
