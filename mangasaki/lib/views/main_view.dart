@@ -25,10 +25,10 @@ class _MainViewState extends State<MainView> {
           width: MediaQuery.of(context).size.width * 0.8,
           height: MediaQuery.of(context).size.height * 0.8,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15), // Esquinas redondeadas
+            borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black,
+                color: Color.fromARGB(255, 60, 111, 150),
                 offset: Offset(0, 4),
               ),
             ],
@@ -37,10 +37,10 @@ class _MainViewState extends State<MainView> {
             children: [
               // Primer sección (parte superior)
               Container(
-                  height: MediaQuery.of(context).size.height * 0.30,
+                  height: MediaQuery.of(context).size.height * 0.25,
                   child: Column(
                     children: [
-                      SizedBox(height: 50),
+                      SizedBox(height: 40),
                       Text(
                         "The Next Generation of Manga Platform",
                         style: TextStyle(
@@ -50,7 +50,7 @@ class _MainViewState extends State<MainView> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 25),
+                      SizedBox(height: 20),
                       Text(
                         "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
                         style: TextStyle(

@@ -18,7 +18,7 @@ class CW_home extends StatelessWidget {
     return Container(
       // Contenedor transparente con borde
       padding: EdgeInsets.all(
-          20), // Aumenté el padding para hacer el recuadro más grande
+          20),
       decoration: BoxDecoration(
         border: Border.all(
             color: Colors.black.withOpacity(0.1), width: 1), // Borde leve
@@ -27,15 +27,15 @@ class CW_home extends StatelessWidget {
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment
-            .start, // Alinea el icono y el texto correctamente
+            .start,
         children: [
           // Imagen a la izquierda
           SvgPicture.asset(
             icon,
-            width: 150.0, // Puedes ajustar el tamaño
-            height: 150.0, // Puedes ajustar el tamaño
+            width: 150.0,
+            height: 150.0,
           ),
-          SizedBox(width: 20), // Espacio entre la imagen y el texto
+          SizedBox(width: 20),
           Expanded(
             // Aquí usamos Expanded para que el texto ocupe el espacio restante
             child: Column(
@@ -49,24 +49,20 @@ class CW_home extends StatelessWidget {
                     fontWeight: FontWeight.bold, // Texto en negrita
                     color: Colors.white, // Color blanco para el título
                   ),
-                  maxLines:
-                      2, // Limita el número de líneas en el título si es necesario
-                  overflow: TextOverflow
-                      .ellipsis, // Agrega "..." si el texto es más largo de lo que cabe
                 ),
                 SizedBox(height: 8), // Espacio entre el título y el subtítulo
                 // Subtítulo debajo del título, en blanco también
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 16, // Tamaño adecuado para el subtítulo
-                    fontWeight: FontWeight.normal, // Texto normal
-                    color: Colors.white, // Color blanco para el subtítulo
+                    fontSize: 14, // tamaño subt
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
                   ),
                   maxLines:
-                      4, // Limita el número de líneas en el subtítulo si es necesario
+                      3,
                   overflow: TextOverflow
-                      .ellipsis, // Agrega "..." si el texto es más largo de lo que cabe
+                      .ellipsis,
                 ),
               ],
             ),

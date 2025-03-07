@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 class ApiService {
-  // Método para iniciar sesión
+  // Metodo para iniciar sesión
   Future<Map<String, dynamic>> login(
       String username, String pass, BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/login');
@@ -21,15 +21,14 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        // Aquí solo retornamos el responseData directamente
         return responseData;
       } else {
         _handleError(response, context);
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Error de conexión o datos inválidos: $e');
-      throw Exception('Error de conexión o datos inválidos: $e');
+      _showSnackBar(context, 'Connection error or invalid data: $e');
+      throw Exception('Connection error or invalid data: $e');
     }
   }
 
@@ -58,28 +57,28 @@ class ApiService {
         final userId = responseData['data']['userId'];
 
         // Una vez registrado, mostramos el diálogo de verificación
-        showVerificationDialog(context, userId); // Pasar el userId aquí
+        showVerificationDialog(context, userId);
         return responseData;
       } else {
         _handleError(response, context);
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Error de conexión o datos inválidos: $e');
-      throw Exception('Error de conexión o datos inválidos: $e');
+      _showSnackBar(context, 'Connection error or invalid data: $e');
+      throw Exception('Connection error or invalid data: $e');
     }
   }
 
   void _handleError(http.Response response, BuildContext context) {
     if (response.statusCode == 401) {
-      _showSnackBar(context, 'Credenciales inválidas. Verifique sus datos.');
+      _showSnackBar(context, 'Invalid credentials. Please check your details.');
     } else if (response.statusCode == 404) {
-      _showSnackBar(context, 'Usuario no encontrado');
+      _showSnackBar(context, 'User not found.');
     } else if (response.statusCode == 403) {
-      _showSnackBar(context, 'Acceso denegado. No tienes permiso.');
+      _showSnackBar(context, 'Access denied. You do not have permission.');
     } else {
       _showSnackBar(context,
-          'Error del servidor. Código de estado: ${response.statusCode}');
+          'Server error. Status code: ${response.statusCode}');
     }
   }
 
@@ -97,12 +96,26 @@ class ApiService {
     );
   }
 
+  void _showSnackPositiveBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style:
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   static final encrypt.Key key =
       encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
   static final encrypt.IV iv =
       encrypt.IV.fromLength(16); // Vector de inicialización
 
-  // Método para encriptar la contraseña
+  // Metodo para encriptar la contraseña
   String _encryptPassword(String password) {
     final encrypter = encrypt.Encrypter(encrypt.AES(key));
     final encrypted = encrypter.encrypt(password, iv: iv);
@@ -128,16 +141,16 @@ class ApiService {
         final responseData = jsonDecode(response.body);
         return responseData;
       } else {
-        _showSnackBar(context, 'Código de verificación incorrecto');
+        _showSnackBar(context, 'Incorrect verification code.');
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Error al verificar el código: $e');
-      throw Exception('Error al verificar el código: $e');
+      _showSnackBar(context, 'Error verifying the code: $e');
+      throw Exception('Error verifying the code: $e');
     }
   }
 
-  // Método para mostrar el diálogo de verificación
+  // Metodo para mostrar el diálogo de verificación
   Future<void> showVerificationDialog(BuildContext context, int userId) async {
     final TextEditingController _verificationCodeController =
         TextEditingController();
@@ -145,7 +158,7 @@ class ApiService {
     return showDialog<void>(
       context: context,
       barrierDismissible:
-          false, // No permitirá cerrar el diálogo tocando fuera de él
+          false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Enter Verification Code'),
@@ -165,32 +178,24 @@ class ApiService {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
               child: Text('Submit'),
               onPressed: () async {
                 String code = _verificationCodeController.text;
 
                 if (code.length == 6) {
-                  // Aquí puedes verificar si el código es correcto
                   final verifyResponse =
                       await verifyCode(userId, code, context);
 
                   if (verifyResponse.isNotEmpty) {
-                    Navigator.of(context).pop(); // Cerrar el diálogo
-                    _showSnackBar(context, 'Código de verificación exitoso');
-                    // Proceder con el registro o cualquier otra acción
+                    Navigator.of(context).pop();
+                    _showSnackPositiveBar(context, 'Successful verification code');
                   } else {
                     _showErrorSnackbar(
-                        context, 'Código inválido. Intente nuevamente.');
+                        context, 'Invalid code. Please try again.');
                   }
                 } else {
                   _showErrorSnackbar(context,
-                      'Por favor, ingrese un código válido de 6 dígitos.');
+                      'Please enter a valid 6-digit code.');
                 }
               },
             ),

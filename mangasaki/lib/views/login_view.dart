@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../connection/api_service.dart';
+import 'main_view.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
         width: screenWidth * 0.85,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8), // Fondo blanco con opacidad
+          color: Colors.white.withOpacity(0.8),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -186,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Validación para login
           if (_usernameController.text.isEmpty ||
               _passwordController.text.isEmpty) {
-            _showErrorSnackbar('Todos los campos son obligatorios.');
+            _showErrorSnackbar('All fields are required.');
             return;
           }
 
@@ -197,26 +198,28 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
           );
 
-          // Aquí puedes hacer algo con la respuesta de login si es necesario.
-          if (loginResponse.isNotEmpty) {
-            // Ejemplo de uso de los datos de la respuesta:
-            print('Login exitoso');
-            // Aquí deberías navegar a la siguiente pantalla si el login fue exitoso
+          if (loginResponse['status'] == 'OK') {
+            // Navegar a la pantalla MainView
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainView()),
+            );
           } else {
-            _showErrorSnackbar('Error en el login. Verifica tus credenciales.');
+            _showErrorSnackbar('Login error. Please check your credentials.');
           }
+
         } else {
           // Para el caso de registro
           if (_usernameController.text.isEmpty ||
               _phoneController.text.isEmpty ||
               _passwordController.text.isEmpty ||
               _confirmPasswordController.text.isEmpty) {
-            _showErrorSnackbar('Todos los campos son obligatorios.');
+            _showErrorSnackbar('All fields are required.');
             return;
           }
 
           if (_passwordController.text != _confirmPasswordController.text) {
-            _showErrorSnackbar('Las contraseñas no coinciden.');
+            _showErrorSnackbar('The passwords do not match.');
             return;
           }
 
@@ -225,15 +228,17 @@ class _LoginScreenState extends State<LoginScreen> {
             _usernameController.text,
             _passwordController.text,
             _confirmPasswordController.text,
-            _phoneController.text, // Se pasa el valor de teléfono correctamente
+            _phoneController.text,
             context,
           );
-          if (registerResponse.isNotEmpty) {
-            // Aquí puedes hacer algo con la respuesta de registro
-            print('Registro exitoso');
-            // Ejemplo: Navegar a otra pantalla
+          if (registerResponse['status'] == 'OK') {
+            // Navegar a la pantalla MainView
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainView()),
+            );
           } else {
-            _showErrorSnackbar('Error en el registro. Intenta de nuevo.');
+            _showErrorSnackbar('Registration error. Please try again.');
           }
         }
       },
