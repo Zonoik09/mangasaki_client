@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../connection/api_service.dart';
 import 'main_view.dart';
+import 'package:mangasaki/widgets/global_state.dart' as global;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDataFromFile();
   }
 
   Future<void> _loadDataFromFile() async {
@@ -200,6 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (loginResponse['status'] == 'OK') {
             // Navegar a la pantalla MainView
+            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text);
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MainView()),
@@ -232,11 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
           );
           if (registerResponse['status'] == 'OK') {
-            // Navegar a la pantalla MainView
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => MainView()),
-            );
+            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text);
           } else {
             _showErrorSnackbar('Registration error. Please try again.');
           }

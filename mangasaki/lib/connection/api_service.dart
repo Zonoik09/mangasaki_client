@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
 
+import '../views/main_view.dart';
+
 class ApiService {
   // Metodo para iniciar sesión
   Future<Map<String, dynamic>> login(
@@ -172,7 +174,7 @@ class ApiService {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
-                maxLength: 6, // Limitar la longitud a 6
+                maxLength: 6,
               ),
             ],
           ),
@@ -189,6 +191,11 @@ class ApiService {
                   if (verifyResponse.isNotEmpty) {
                     Navigator.of(context).pop();
                     _showSnackPositiveBar(context, 'Successful verification code');
+                    // Navegar a la pantalla MainView
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainView()),
+                    );
                   } else {
                     _showErrorSnackbar(
                         context, 'Invalid code. Please try again.');

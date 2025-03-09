@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:provider/provider.dart';
 import 'views/login_view.dart';
 import 'views/main_view.dart';
+import 'widgets/global_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +27,12 @@ void main() async {
     });
   }
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => GlobalState(), // Proveemos GlobalState a la aplicación
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

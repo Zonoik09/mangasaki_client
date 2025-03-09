@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
+import 'package:provider/provider.dart';
+import 'package:mangasaki/views/login_view.dart';
+
+import '../widgets/global_state.dart';
+import 'camera_screen.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -10,6 +15,7 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   int _selectedIndex = 0;
+  late bool _isMobile;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -18,110 +24,148 @@ class _MainViewState extends State<MainView> {
   }
 
   Widget _principalView(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    _isMobile = screenWidth < 800;
+
     return Container(
       color: Colors.white,
-      child: Align(
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.8,
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Color.fromARGB(255, 60, 111, 150),
-                offset: Offset(0, 4),
+      child: _isMobile
+          ? SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: _buildContent(context),
+            )
+          : _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Align(
+      child: Container(
+        width: MediaQuery.of(context).size.width * (_isMobile ? 1 : 0.8),
+        // En lugar de definir una altura fija, usa constraints para el tamaño.
+        constraints: BoxConstraints(
+          maxWidth: _isMobile ? double.infinity : MediaQuery.of(context).size.width * 0.8,
+          maxHeight: _isMobile ? double.infinity : MediaQuery.of(context).size.height * 0.8,
+        ),
+
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular((_isMobile ? 0 : 15)),
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(255, 60, 111, 150),
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Primer sección
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.25,
+              child: Column(
+                children: [
+                  SizedBox(height: (_isMobile ? 10 : 40)),
+                  Text(
+                    "The Next Generation of Manga Platform",
+                    style: TextStyle(
+                      fontSize: (_isMobile ? 25 : 40),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: (_isMobile ? 5 : 20)),
+                  Text(
+                    "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
+                    style: TextStyle(
+                      fontSize: (_isMobile ? 18 : 24),
+                      color: Colors.white70,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Primer sección (parte superior)
-              Container(
-                  height: MediaQuery.of(context).size.height * 0.25,
-                  child: Column(
-                    children: [
-                      SizedBox(height: 40),
-                      Text(
-                        "The Next Generation of Manga Platform",
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Colors.white70,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  )),
-              // Segunda sección (parte inferior) - 50% de la altura
-              Container(
-                height: MediaQuery.of(context).size.height * 0.25,
-                child: Row(
-                  children: [
-                    // Columna izquierda (50% del ancho)
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: CW_home(
-                        icon: "assets/images/stats.svg",
-                        title: "Discover and save your favorite mangas",
-                        subtitle:
-                            "Explora una amplia colección de mangas, sigue los capítulos de tus series favoritas y guárdalos para tenerlos siempre a tu alcance. ¡Lleva tu experiencia de lectura al siguiente nivel y nunca pierdas el hilo de tu manga preferido!",
-                      ),
+            ),
+            // Segunda sección
+            if (_isMobile)
+              Column(
+                children: [
+                  CW_home(
+                    icon: "assets/images/stats.svg",
+                    title: "Discover and save your favorite mangas",
+                    subtitle:
+                        "Explore a wide collection of mangas, follow the chapters of your favorite series, and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
+                  ),
+                  CW_home(
+                    icon: "assets/images/social.svg",
+                    title: "Join the community!",
+                    subtitle:
+                        "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: CW_home(
+                      icon: "assets/images/stats.svg",
+                      title: "Discover and save your favorite mangas",
+                      subtitle:
+                          "Explore a wide collection of mangas, follow the chapters of your favorite series, and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
                     ),
-                    // Columna derecha (50% del ancho)
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: MediaQuery.of(context).size.height * 0.50,
-                      child: CW_home(
-                        icon: "assets/images/social.svg",
-                        title: "Join the community!",
-                        subtitle:
-                            "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
-                      ),
+                  ),
+                  Expanded(
+                    child: CW_home(
+                      icon: "assets/images/social.svg",
+                      title: "Join the community!",
+                      subtitle:
+                          "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.25,
-                child: Row(
-                  children: [
-                    // Columna izquierda (50% del ancho)
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: CW_home(
-                        icon: "assets/images/apps.svg",
-                        title: "Bring Mangasaki anywhere",
-                        subtitle:
-                            "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
-                      ),
+            // Tercera sección
+            if (_isMobile)
+              Column(
+                children: [
+                  CW_home(
+                    icon: "assets/images/apps.svg",
+                    title: "Bring Mangasaki anywhere",
+                    subtitle:
+                    "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
+                  ),
+                  CW_home(
+                    icon: "assets/images/custom.svg",
+                    title: "Customized to your liking!",
+                    subtitle:
+                    "We have different themes to change the style of the app!",
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: CW_home(
+                      icon: "assets/images/apps.svg",
+                      title: "Bring Mangasaki anywhere",
+                      subtitle:
+                          "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
                     ),
-                    // Columna derecha (50% del ancho)
-                    Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: MediaQuery.of(context).size.height * 0.50,
-                      child: CW_home(
-                        icon: "assets/images/custom.svg",
-                        title: "Customized to your liking!",
-                        subtitle:
-                            "We have different themes to change the style of the app!",
-                      ),
+                  ),
+                  Expanded(
+                    child: CW_home(
+                      icon: "assets/images/custom.svg",
+                      title: "Customized to your liking!",
+                      subtitle:
+                          "We have different themes to change the style of the app!",
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -157,8 +201,8 @@ class _MainViewState extends State<MainView> {
               UserAccountsDrawerHeader(
                 decoration:
                     BoxDecoration(color: Color.fromARGB(255, 60, 111, 150)),
-                accountName:
-                    Text("Usuario", style: TextStyle(color: Colors.white)),
+                accountName: Text(Provider.of<GlobalState>(context).username,
+                    style: TextStyle(color: Colors.white)),
                 accountEmail: null,
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.red,
@@ -211,7 +255,10 @@ class _MainViewState extends State<MainView> {
                 leading: Icon(Icons.logout, color: Colors.white),
                 title: Text('Sign Out', style: TextStyle(color: Colors.white)),
                 onTap: () {
-                  // Implementar la lógica de cierre de sesión aquí
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => (LoginScreen())),
+                  );
                 },
               ),
             ],
@@ -224,6 +271,27 @@ class _MainViewState extends State<MainView> {
         ),
         backgroundColor: Color.fromARGB(255, 60, 111, 150),
         iconTheme: IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications, color: Colors.white),
+            onPressed: () {
+              // Acción cuando se toca la campanita
+              print('Notificaciones presionadas');
+            },
+          ),
+          if (MediaQuery.of(context).size.width < 600) // Solo en móviles
+            IconButton(
+              icon: Icon(Icons.camera_alt, color: Colors.white),
+              onPressed: () {
+                // Acción cuando se toca la cámara
+                print('Cámara abierta');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CameraScreen()),
+                );
+              },
+            ),
+        ],
       ),
       body: _pages[_selectedIndex],
     );

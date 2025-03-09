@@ -6,7 +6,6 @@ class CW_home extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  // Constructor para recibir los valores del icono, título y subtítulo
   CW_home({
     required this.icon,
     required this.title,
@@ -15,54 +14,82 @@ class CW_home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    bool isMobile = screenWidth < 600;
+
     return Container(
-      // Contenedor transparente con borde
-      padding: EdgeInsets.all(
-          20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: Border.all(
-            color: Colors.black.withOpacity(0.1), width: 1), // Borde leve
-        borderRadius: BorderRadius.circular(12), // Esquinas redondeadas
-        color: Colors.transparent, // Fondo transparente
+        border: Border.all(color: Colors.white.withOpacity(0.0), width: 1),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withOpacity(0.00),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.0),
+            blurRadius: 8,
+            offset: Offset(2, 2),
+          ),
+        ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment
-            .start,
+      child: isMobile
+          ? Column( // Apila los elementos en pantallas pequeñas
         children: [
-          // Imagen a la izquierda
           SvgPicture.asset(
             icon,
-            width: 150.0,
-            height: 150.0,
+            width: screenWidth * 0.2,
+            height: screenWidth * 0.2,
           ),
-          SizedBox(width: 20),
+          SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.white70,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      )
+          : Row( // Mantiene la disposición horizontal en pantallas grandes
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SvgPicture.asset(
+            icon,
+            width: 120, // Tamaño reducido para mejor adaptación
+            height: 120,
+          ),
+          SizedBox(width: 16),
           Expanded(
-            // Aquí usamos Expanded para que el texto ocupe el espacio restante
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Título en blanco y en negrita
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 22, // Aumenté el tamaño del texto
-                    fontWeight: FontWeight.bold, // Texto en negrita
-                    color: Colors.white, // Color blanco para el título
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 8), // Espacio entre el título y el subtítulo
-                // Subtítulo debajo del título, en blanco también
+                SizedBox(height: 8),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 14, // tamaño subt
-                    fontWeight: FontWeight.normal,
-                    color: Colors.white,
+                    fontSize: 14,
+                    color: Colors.white70,
                   ),
-                  maxLines:
-                      3,
-                  overflow: TextOverflow
-                      .ellipsis,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
