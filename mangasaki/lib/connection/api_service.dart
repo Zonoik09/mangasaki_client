@@ -71,6 +71,29 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> analyzeBook(String base64Image) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/book/analyzeBook');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'base64Image': base64Image,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        throw Exception('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   void _handleError(http.Response response, BuildContext context) {
     if (response.statusCode == 401) {
       _showSnackBar(context, 'Invalid credentials. Please check your details.');
@@ -226,4 +249,8 @@ class ApiService {
       ),
     );
   }
+
 }
+
+
+

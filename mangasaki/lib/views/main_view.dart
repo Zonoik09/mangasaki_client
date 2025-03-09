@@ -199,16 +199,29 @@ class _MainViewState extends State<MainView> {
           color: Colors.black,
           child: Column(
             children: <Widget>[
-              UserAccountsDrawerHeader(
-                decoration:
-                    BoxDecoration(color: Color.fromARGB(255, 60, 111, 150)),
-                accountName: Text(Provider.of<GlobalState>(context).username,
-                    style: TextStyle(color: Colors.white)),
-                accountEmail: null,
-                currentAccountPicture: CircleAvatar(
-                  backgroundColor: Colors.red,
+              Container(
+                width: double.infinity,
+                color: const Color.fromARGB(255, 60, 111, 150),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage("https://picsum.photos/200/300?grayscale"), //imagen de prueba
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      Provider.of<GlobalState>(context).username,
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
+
+
+
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
