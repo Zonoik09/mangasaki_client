@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
 
-          // Llamada al login (asumirás que tienes el ApiService importado)
+          // Llamada al login
           final loginResponse = await ApiService().login(
             _usernameController.text,
             _passwordController.text,
@@ -201,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (loginResponse['status'] == 'OK') {
             // Navegar a la pantalla MainView
-            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text);
+            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text); // esto es temporal
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MainView()),
@@ -217,6 +217,14 @@ class _LoginScreenState extends State<LoginScreen> {
               _passwordController.text.isEmpty ||
               _confirmPasswordController.text.isEmpty) {
             _showErrorSnackbar('All fields are required.');
+            return;
+          }
+
+          if (_passwordController.text.length < 8 ||
+              !_passwordController.text.contains(RegExp(r'[a-z]')) ||
+              !_passwordController.text.contains(RegExp(r'[A-Z]')) ||
+              !_passwordController.text.contains(RegExp(r'\d'))) {
+            _showErrorSnackbar('The password is not secure. It must contain at least one uppercase letter, one lowercase letter, one number, and be at least 8 characters long.');
             return;
           }
 

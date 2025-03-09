@@ -5,6 +5,7 @@ import 'package:mangasaki/views/login_view.dart';
 
 import '../widgets/global_state.dart';
 import 'camera_screen.dart';
+import 'notification_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -276,7 +277,10 @@ class _MainViewState extends State<MainView> {
             icon: Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
               // Acción cuando se toca la campanita
-              print('Notificaciones presionadas');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationView()),
+              );
             },
           ),
           if (MediaQuery.of(context).size.width < 600) // Solo en móviles
@@ -284,7 +288,6 @@ class _MainViewState extends State<MainView> {
               icon: Icon(Icons.camera_alt, color: Colors.white),
               onPressed: () {
                 // Acción cuando se toca la cámara
-                print('Cámara abierta');
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CameraScreen()),
