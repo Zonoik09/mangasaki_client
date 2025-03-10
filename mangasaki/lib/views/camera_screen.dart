@@ -141,7 +141,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   void _sendImageToApi(BuildContext context) async {
-    Navigator.pop(context);
 
     setState(() {
       isLoading = true;
@@ -158,10 +157,8 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
       // Mostrar la respuesta
       // Despues se tendra que comparar el type, dependiendo cual sea mostrar una cosa o otra
-      print(response["data"]["type"]);
-      print(response["data"]["manga_name"]);
-      print(response["data"]["volume"]);
-      print(response["data"]["isbn_code"]);
+      print(response["data"]["title"]);
+      print(response["data"]["description"]);
 
       // Mostrar un mensaje de éxito (puedes cambiarlo o personalizarlo)
       ScaffoldMessenger.of(context).showSnackBar(
