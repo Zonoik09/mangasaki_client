@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
 import 'package:provider/provider.dart';
 import 'package:mangasaki/views/login_view.dart';
@@ -44,7 +45,6 @@ class _MainViewState extends State<MainView> {
     return Align(
       child: Container(
         width: MediaQuery.of(context).size.width * (_isMobile ? 1 : 0.8),
-        // En lugar de definir una altura fija, usa constraints para el tamaño.
         constraints: BoxConstraints(
           maxWidth: _isMobile ? double.infinity : MediaQuery.of(context).size.width * 0.8,
           maxHeight: _isMobile ? double.infinity : MediaQuery.of(context).size.height * 0.8,
@@ -182,9 +182,7 @@ class _MainViewState extends State<MainView> {
       Center(
           child: Text('Social',
               style: TextStyle(fontSize: 24, color: Colors.white))),
-      Center(
-          child: Text('Top Mangas',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
+      TopMangasView(),
       Center(
           child: Text('Search',
               style: TextStyle(fontSize: 24, color: Colors.white))),

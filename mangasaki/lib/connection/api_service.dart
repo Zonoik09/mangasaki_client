@@ -72,7 +72,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> analyzeBook(String base64Image) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/book/analyzeBook');
+    final url = Uri.parse('https://mangasaki.ieti.site/api/manga/analyzeManga');
 
     try {
       final response = await http.post(
