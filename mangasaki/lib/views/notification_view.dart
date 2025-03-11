@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/invitation_widget.dart';
 
 class NotificationView extends StatelessWidget {
-  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99"]; // Lista de usuarios ficticios
+  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99"];
 
   NotificationView({Key? key}) : super(key: key);
 

@@ -80,7 +80,7 @@ class InvitationWidgetDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 250, // Ancho fijo para escritorio
+      width: MediaQuery.of(context).size.width * 0.15,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
