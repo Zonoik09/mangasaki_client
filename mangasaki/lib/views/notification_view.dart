@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/invitation_widget.dart';
 
 class NotificationView extends StatelessWidget {
-  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99"]; // Lista de usuarios ficticios
+  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99", "Alexiutu", "pablo pablete","eskebere"]; // Lista de usuarios ficticios
 
   NotificationView({Key? key}) : super(key: key);
 
@@ -56,29 +56,39 @@ class NotificationView extends StatelessWidget {
     );
   }
 
-  //Versión de escritorio con `GridView`
+  // Versión de escritorio con `GridView` adaptable
   Widget _buildDesktopGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: friendRequests.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6, // columnas en escritorio
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        childAspectRatio: 1, // Mantiene proporción cuadrada
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,  
+        crossAxisSpacing: 20,     
+        mainAxisSpacing: 20,      // Espaciado vertical entre las tarjetas
+        childAspectRatio: 1,      // Mantiene proporción cuadrada
       ),
       itemBuilder: (context, index) {
-        return InvitationWidgetDesktop(
-          username: friendRequests[index],
-          profileImageUrl: "https://picsum.photos/200/300?grayscale", // Usa una imagen local en assets
-          onAccept: () {
-            print("${friendRequests[index]} accepted");
-          },
-          onDecline: () {
-            print("${friendRequests[index]} declined");
-          },
-        );
+        return _buildFixedSizeCard(friendRequests[index]);
       },
     );
   }
+
+  // Widget para el cuadrado con tamaño fijo
+    Widget _buildFixedSizeCard(String username) {
+      return SizedBox(
+        width: 250, // Ancho fijo
+        height: 400, // Altura fija
+        child: InvitationWidgetDesktop(
+          username: username,
+          profileImageUrl: "https://picsum.photos/200/300?grayscale",
+          onAccept: () {
+            print("$username Accepted");
+          },
+          onDecline: () {
+            print("$username Declined");
+          },
+        ),
+      );
+    }
+
 }
