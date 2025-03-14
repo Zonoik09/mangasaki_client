@@ -57,6 +57,18 @@ class _TopMangasViewState extends State<TopMangasView> {
               itemCount: mangas.length,
               itemBuilder: (context, index) {
                 final manga = mangas[index];
+                List<String> generos = [];
+
+                for (var genre in manga["genres"]) {
+                  generos.add(genre['name']);
+                }
+                for (var genre in manga["themes"]) {
+                  generos.add(genre["name"]);
+                }
+
+                for (var genre in manga["demographics"]) {
+                  generos.add(genre["name"]);
+                }
 
                 return MangaWidget(
                   imageUrl: manga['images']['jpg']['image_url'],
@@ -65,6 +77,9 @@ class _TopMangasViewState extends State<TopMangasView> {
                   rank: manga['rank'],
                   title: manga['title'],
                   description: manga["synopsis"],
+                  chapters: manga["chapters"] ?? -1,
+                  genres: generos,
+
                 );
               },
             ),

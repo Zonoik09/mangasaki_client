@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart'; // Si es necesario para la navegación
+import 'package:mangasaki/views/manga_view.dart';
 
 class MangaWidget extends StatelessWidget {
   final String title;
@@ -7,6 +9,8 @@ class MangaWidget extends StatelessWidget {
   final double score;
   final int rank;
   final String description;
+  final int chapters;
+  final List<String> genres;
 
   const MangaWidget({
     Key? key,
@@ -16,6 +20,8 @@ class MangaWidget extends StatelessWidget {
     required this.score,
     required this.rank,
     required this.description,
+    required this.chapters,
+    required this.genres,
   }) : super(key: key);
 
   @override
@@ -23,12 +29,32 @@ class MangaWidget extends StatelessWidget {
     String cleanedDescription = description
         .replaceAll(RegExp(r'(\n|\[Written by MAL Rewrite\])'), '')
         .trim();
-    return Card(
-      color: Color.fromARGB(255, 60, 111, 150),
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+
+    return GestureDetector(
+      onTap: () {
+        // Navegar a MangaView cuando se hace clic en el widget
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MangaView(
+              name: title,
+              description: cleanedDescription,
+              status: status,
+              ranking: rank,
+              score: score,
+              genres: genres,
+              chapters: chapters ?? -1,
+              imageUrl: imageUrl,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        color: Color.fromARGB(255, 60, 111, 150),
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
         child: Row(
           children: [
             Image.network(imageUrl, height: 200, fit: BoxFit.cover),
@@ -44,7 +70,6 @@ class MangaWidget extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-
                   // Limpiar la descripción
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 450),
@@ -55,7 +80,6 @@ class MangaWidget extends StatelessWidget {
                       overflow: TextOverflow.ellipsis, // Mostrar "..." si el texto excede 3 líneas
                     ),
                   ),
-
                   // Row para distribuir el Column (status + starRating) y rank a la derecha
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,7 +92,6 @@ class MangaWidget extends StatelessWidget {
                           starRating(score),
                           SizedBox(height: 15),
                           statusWidget(status),
-
                         ],
                       ),
                       // Rank alineado a la derecha
@@ -79,14 +102,12 @@ class MangaWidget extends StatelessWidget {
               ),
             ),
           ],
-        )
-
-
+        ),
+      ),
     );
   }
 
   Widget statusWidget(String status) {
-    // Definir el color de acuerdo al estado
     Color statusColor;
     if (status == "On Hiatus") {
       statusColor = Colors.amberAccent; // Amarillo
@@ -116,18 +137,13 @@ class MangaWidget extends StatelessWidget {
   }
 
   Widget starRating(double rating) {
-    // El número total de estrellas es 5, cada una tiene un valor de 2 (0-10 puntos)
-    int fullStars = rating ~/ 2; // Número de estrellas completas (de 0 a 5)
-    double fractionalStar =
-        rating - fullStars * 2; // Valor de la fracción de estrella (0 a 2)
-    int emptyStars = 5 -
-        fullStars -
-        (fractionalStar >= 1 ? 1 : 0); // Número de estrellas vacías
+    int fullStars = rating ~/ 2;
+    double fractionalStar = rating - fullStars * 2;
+    int emptyStars = 5 - fullStars - (fractionalStar >= 1 ? 1 : 0);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Generar estrellas completas
         ...List.generate(fullStars, (index) {
           return Icon(
             Icons.star,
@@ -135,14 +151,12 @@ class MangaWidget extends StatelessWidget {
             size: 20.0,
           );
         }),
-        // Si hay una fracción (media estrella), añadir una estrella parcial
         if (fractionalStar >= 1)
           Icon(
             Icons.star_half,
             color: Colors.yellow,
             size: 20.0,
           ),
-        // Generar estrellas vacías
         ...List.generate(emptyStars, (index) {
           return Icon(
             Icons.star_border,
@@ -153,52 +167,50 @@ class MangaWidget extends StatelessWidget {
       ],
     );
   }
+
   Widget customRatingWidget(int score) {
-    // Definir variables para el borde y el color de fondo según el rango del número
     Color borderColor;
     Color backgroundColor;
     double fontSize;
 
-    // Determinar el color de borde, fondo y el tamaño de la fuente según el score
     if (score >= 1 && score <= 10) {
-      borderColor = Colors.amber; // Dorado
+      borderColor = Colors.amber;
       backgroundColor = Colors.black;
       fontSize = 16;
     } else if (score >= 11 && score <= 20) {
-      borderColor = Colors.grey; // Plateado
+      borderColor = Colors.grey;
       backgroundColor = Colors.black;
       fontSize = 14;
     } else if (score >= 21 && score <= 50) {
-      borderColor = Colors.blueAccent; // Color bronce
+      borderColor = Colors.blueAccent;
       backgroundColor = Colors.white;
       fontSize = 12;
     } else if (score >= 51 && score <= 200) {
-      borderColor = Colors.green; // Otro color
+      borderColor = Colors.green;
       backgroundColor = Colors.white;
       fontSize = 10;
     } else {
-      borderColor = Colors.black; // Negro
+      borderColor = Colors.black;
       backgroundColor = Colors.white;
       fontSize = 8;
     }
 
-    // Crear el widget con la configuración anterior
     return Container(
       padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       decoration: BoxDecoration(
-        color: backgroundColor, // Color de fondo
-        borderRadius: BorderRadius.circular(10), // Bordes redondeados
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: borderColor, // Color del borde
-          width: 2, // Grosor del borde
+          color: borderColor,
+          width: 2,
         ),
       ),
       child: Text(
-        '$score', // Mostrar el número como texto
+        '$score',
         style: TextStyle(
-          fontSize: fontSize, // Tamaño de la fuente según el rango
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          color: borderColor, // Color del texto, que debe resaltar
+          color: borderColor,
         ),
       ),
     );
