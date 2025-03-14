@@ -14,7 +14,7 @@ class _TopMangasViewState extends State<TopMangasView> {
     final response = await http.get(Uri.parse('https://api.jikan.moe/v4/top/manga?limit=24'));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['data']; // Lista de mangas
+      return data['data'];
     } else {
       throw Exception('Failed to load top mangas');
     }
@@ -24,8 +24,24 @@ class _TopMangasViewState extends State<TopMangasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Top Mangas"),
-        backgroundColor: Color.fromARGB(255, 60, 111, 150),
+        title: const Text(
+          "Top Mangas",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color.fromARGB(255, 60, 111, 150),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            color: Colors.white,
+            onPressed: () {
+              setState(() {});
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: fetchTopMangas(),
@@ -79,7 +95,6 @@ class _TopMangasViewState extends State<TopMangasView> {
                   description: manga["synopsis"],
                   chapters: manga["chapters"] ?? -1,
                   genres: generos,
-
                 );
               },
             ),

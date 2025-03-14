@@ -70,7 +70,6 @@ class MangaWidget extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  // Limpiar la descripción
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 450),
                     child: Text(
@@ -84,17 +83,11 @@ class MangaWidget extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Columna para el statusWidget y starRating
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 15),
-                          starRating(score),
-                          SizedBox(height: 15),
-                          statusWidget(status),
-                        ],
-                      ),
-                      // Rank alineado a la derecha
+                      SizedBox(height: 60),
+                      starRating(score),
+                      SizedBox(width: 20),
+                      statusWidget(status),
+                      SizedBox(width: 150, height: 62,),
                       customRatingWidget(rank),
                     ],
                   ),
@@ -110,11 +103,11 @@ class MangaWidget extends StatelessWidget {
   Widget statusWidget(String status) {
     Color statusColor;
     if (status == "On Hiatus") {
-      statusColor = Colors.amberAccent; // Amarillo
+      statusColor = Colors.amber;
     } else if (status == "Finished") {
-      statusColor = Colors.red; // Rojo
+      statusColor = Colors.red;
     } else if (status == "Publishing") {
-      statusColor = Colors.green; // Verde
+      statusColor = Colors.green;
     } else {
       statusColor = Colors.grey;
     }
@@ -176,7 +169,7 @@ class MangaWidget extends StatelessWidget {
     if (score >= 1 && score <= 10) {
       borderColor = Colors.amber;
       backgroundColor = Colors.black;
-      fontSize = 16;
+      fontSize = 18;
     } else if (score >= 11 && score <= 20) {
       borderColor = Colors.grey;
       backgroundColor = Colors.black;
@@ -206,7 +199,7 @@ class MangaWidget extends StatelessWidget {
         ),
       ),
       child: Text(
-        '$score',
+        '#$score',
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.bold,

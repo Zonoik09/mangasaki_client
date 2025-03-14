@@ -50,7 +50,7 @@ class MangaNotificationView extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MangaView(name: name, description: description, status: status, ranking: ranking, score: score , genres: genres, chapters: 30,)),
+                    MaterialPageRoute(builder: (context) => MangaView(name: name, description: description, status: status, ranking: ranking, score: score , genres: genres, chapters: 30,imageUrl: imageUrl,)),
                   );
                 },
                 child: const Text("Ver Manga"),
