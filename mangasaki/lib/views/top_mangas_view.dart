@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/scheduler.dart';
+import 'package:mangasaki/connection/api_service.dart';
 
 import '../widgets/manga_widget.dart';
 
@@ -12,6 +11,7 @@ class TopMangasView extends StatefulWidget {
 
 class _TopMangasViewState extends State<TopMangasView> {
   Future<List<dynamic>>? _mangasFuture;
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -20,13 +20,7 @@ class _TopMangasViewState extends State<TopMangasView> {
   }
 
   Future<List<dynamic>> fetchTopMangas() async {
-    final response = await http.get(Uri.parse('https://api.jikan.moe/v4/top/manga?limit=24'));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['data'];
-    } else {
-      throw Exception('Failed to load top mangas');
-    }
+    return await _apiService.getTopMangas();
   }
 
   void _retryFetchMangas() {

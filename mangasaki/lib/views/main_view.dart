@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mangasaki/views/search_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
-import 'package:provider/provider.dart';
 import 'package:mangasaki/views/login_view.dart';
 
-import '../widgets/global_state.dart';
+import '../connection/userStorage.dart';
 import 'camera_screen.dart';
 import 'notification_view.dart';
 
@@ -183,14 +183,13 @@ class _MainViewState extends State<MainView> {
           child: Text('Social',
               style: TextStyle(fontSize: 24, color: Colors.white))),
       TopMangasView(),
-      Center(
-          child: Text('Search',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
+      MangaSearchView(),
       Center(
           child: Text('Themes',
               style: TextStyle(fontSize: 24, color: Colors.white))),
     ];
-
+    final userData = UserStorage.getUserData();
+    print(userData);
     return Scaffold(
       drawer: Drawer(
         child: Container(
@@ -210,7 +209,7 @@ class _MainViewState extends State<MainView> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      Provider.of<GlobalState>(context).username,
+                      "Usuario",
                       style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),

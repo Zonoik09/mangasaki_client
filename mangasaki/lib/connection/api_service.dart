@@ -34,6 +34,7 @@ class ApiService {
     }
   }
 
+  // Metodo para register
   Future<Map<String, dynamic>> register(String username, String pass,
       String pass2, String phone, BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/register');
@@ -71,7 +72,8 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> analyzeBook(String base64Image) async {
+  // Metodo para analizar el manga
+  Future<Map<String, dynamic>> analyzeManga(String base64Image) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/manga/analyzeManga');
 
     try {
@@ -92,59 +94,6 @@ class ApiService {
     } catch (e) {
       rethrow;
     }
-  }
-
-  void _handleError(http.Response response, BuildContext context) {
-    if (response.statusCode == 401) {
-      _showSnackBar(context, 'Invalid credentials. Please check your details.');
-    } else if (response.statusCode == 404) {
-      _showSnackBar(context, 'User not found.');
-    } else if (response.statusCode == 403) {
-      _showSnackBar(context, 'Access denied. You do not have permission.');
-    } else {
-      _showSnackBar(context,
-          'Server error. Status code: ${response.statusCode}');
-    }
-  }
-
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-          textAlign: TextAlign.center,
-        ),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  void _showSnackPositiveBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style:
-          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-          textAlign: TextAlign.center,
-        ),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  static final encrypt.Key key =
-      encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
-  static final encrypt.IV iv =
-      encrypt.IV.fromLength(16); // Vector de inicialización
-
-  // Metodo para encriptar la contraseña
-  String _encryptPassword(String password) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    final encrypted = encrypter.encrypt(password, iv: iv);
-    return encrypted.base64;
   }
 
   // Llamada a la api de verificación de codigo.
@@ -172,6 +121,32 @@ class ApiService {
     } catch (e) {
       _showSnackBar(context, 'Error verifying the code: $e');
       throw Exception('Error verifying the code: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserInfo(String nickname) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserInfo');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
+    }
+  }
+
+  Future<List<dynamic>> getTopMangas() async {
+    final response = await http.get(Uri.parse('https://api.jikan.moe/v4/top/manga?limit=24'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'];
+    } else {
+      throw Exception('Failed to load top mangas');
     }
   }
 
@@ -233,6 +208,59 @@ class ApiService {
         );
       },
     );
+  }
+
+  void _handleError(http.Response response, BuildContext context) {
+    if (response.statusCode == 401) {
+      _showSnackBar(context, 'Invalid credentials. Please check your details.');
+    } else if (response.statusCode == 404) {
+      _showSnackBar(context, 'User not found.');
+    } else if (response.statusCode == 403) {
+      _showSnackBar(context, 'Access denied. You do not have permission.');
+    } else {
+      _showSnackBar(context,
+          'Server error. Status code: ${response.statusCode}');
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style:
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showSnackPositiveBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style:
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  static final encrypt.Key key =
+  encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
+  static final encrypt.IV iv =
+  encrypt.IV.fromLength(16); // Vector de inicialización
+
+  // Metodo para encriptar la contraseña
+  String _encryptPassword(String password) {
+    final encrypter = encrypt.Encrypter(encrypt.AES(key));
+    final encrypted = encrypter.encrypt(password, iv: iv);
+    return encrypted.base64;
   }
 
   // Corregir la función _showErrorSnackbar pasando el context correctamente

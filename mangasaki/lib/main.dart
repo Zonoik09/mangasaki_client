@@ -2,19 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
+import 'connection/userStorage.dart';
 import 'views/login_view.dart';
 import 'views/main_view.dart';
-import 'widgets/global_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Solo inicializar el window_manager en plataformas de escritorio
   if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-    // Inicializar el gestor de ventanas solo en plataformas de escritorio
     await windowManager.ensureInitialized();
 
-    // Configurar propiedades iniciales de la ventana
     WindowOptions windowOptions = const WindowOptions(
       title: 'Mangasaki!',
       size: Size(1280, 720),
@@ -27,13 +24,9 @@ void main() async {
     });
   }
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => GlobalState(), // Proveemos GlobalState a la aplicación
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp()); // <-- Esto inicia la app
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
