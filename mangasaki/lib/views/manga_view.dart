@@ -131,9 +131,8 @@ class MangaView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
-        ),
-
-      body: Padding(
+      ),
+      body: SingleChildScrollView( // Agregado SingleChildScrollView para hacer todo desplazable
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,28 +178,27 @@ class MangaView extends StatelessWidget {
                 ),
               )
             else
-              Expanded(
-                child: Container(
-                  child: ListView.separated(
-                    itemCount: chapters,
-                    separatorBuilder: (context, index) => Divider(color: Colors.grey),
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.white)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.favorite_border, color: Colors.white),
-                            SizedBox(width: 8),
-                            Icon(Icons.bookmark_border, color: Colors.white),
-                            SizedBox(width: 8),
-                            Icon(Icons.remove_red_eye, color: Colors.white),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
+            // Usamos ListView directamente sin Expanded ni shrinkWrap
+              ListView.separated(
+                shrinkWrap: true, // Para que el ListView ocupe solo el espacio necesario
+                physics: NeverScrollableScrollPhysics(), // Desactiva el desplazamiento dentro del ListView
+                itemCount: chapters,
+                separatorBuilder: (context, index) => Divider(color: Colors.grey),
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.white)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.favorite_border, color: Colors.white),
+                        SizedBox(width: 8),
+                        Icon(Icons.bookmark_border, color: Colors.white),
+                        SizedBox(width: 8),
+                        Icon(Icons.remove_red_eye, color: Colors.white),
+                      ],
+                    ),
+                  );
+                },
               ),
           ],
         ),

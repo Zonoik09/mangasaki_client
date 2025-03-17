@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:mangasaki/connection/api_service.dart';
 import 'package:mangasaki/views/search_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
@@ -188,94 +191,120 @@ class _MainViewState extends State<MainView> {
           child: Text('Themes',
               style: TextStyle(fontSize: 24, color: Colors.white))),
     ];
-    final userData = UserStorage.getUserData();
-    print(userData);
+    UserStorage.getUserData().then((userData) {
+    });
     return Scaffold(
       drawer: Drawer(
         child: Container(
           color: Colors.black,
-          child: Column(
-            children: <Widget>[
-              Container(
-                width: double.infinity,
-                color: const Color.fromARGB(255, 60, 111, 150),
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage("https://picsum.photos/200/300?grayscale"), //imagen de prueba
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Usuario",
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: UserStorage.getUserData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError || !snapshot.hasData || snapshot.data!['resultat'] == null) {
+                return const Center(child: Text("Error al cargar datos", style: TextStyle(color: Colors.white)));
+              }
+
+              // Extraemos los datos del usuario
+              final userData = snapshot.data!;
+              final nickname = userData['resultat']['nickname'] ?? 'Usuario';
+              final Future<Uint8List?> image = ApiService().fetchUserImage(nickname);
 
 
+              return Column(
+                children: <Widget>[
+                 Container(
+                    width: double.infinity,
+                    color: const Color.fromARGB(255, 60, 111, 150),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: ClipOval(
+                            child: Image.network(
+                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname",
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, color: Colors.white, size: 50);
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          nickname,
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
 
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    ListTile(
-                      leading: Icon(Icons.home, color: Colors.white),
-                      title:
-                          Text('Home', style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(0),
+                  //  MENÚ DE OPCIONES
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.home, color: Colors.white),
+                          title: const Text('Home', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(0),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.person, color: Colors.white),
+                          title: const Text('Profile', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(1),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.group, color: Colors.white),
+                          title: const Text('Social', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(2),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.book, color: Colors.white),
+                          title: const Text('Top Mangas', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(3),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.search, color: Colors.white),
+                          title: const Text('Search', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(4),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.color_lens, color: Colors.white),
+                          title: const Text('Themes', style: TextStyle(color: Colors.white)),
+                          onTap: () => _onItemTapped(5),
+                        ),
+                      ],
                     ),
-                    ListTile(
-                      leading: Icon(Icons.person, color: Colors.white),
-                      title: Text('Profile',
-                          style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(1),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.group, color: Colors.white),
-                      title:
-                          Text('Social', style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(2),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.book, color: Colors.white),
-                      title: Text('Top Mangas',
-                          style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(3),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.search, color: Colors.white),
-                      title:
-                          Text('Search', style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(4),
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.color_lens, color: Colors.white),
-                      title:
-                          Text('Themes', style: TextStyle(color: Colors.white)),
-                      onTap: () => _onItemTapped(5),
-                    ),
-                  ],
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.logout, color: Colors.white),
-                title: Text('Sign Out', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => (LoginScreen())),
-                  );
-                },
-              ),
-            ],
+                  ),
+
+                  //  BOTÓN DE CIERRE DE SESIÓN
+                  ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.white),
+                    title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
+
       appBar: AppBar(
         title: Center(
           child: Text('MANGASAKI', style: TextStyle(color: Colors.white)),

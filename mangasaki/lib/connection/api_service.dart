@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
@@ -62,7 +63,14 @@ class ApiService {
         // Una vez registrado, mostramos el diálogo de verificación
         showVerificationDialog(context, userId);
         return responseData;
-      } else {
+
+      } else if (response.statusCode == 401){
+        _handleError(response, context);
+        return {};
+      } else if (response.statusCode == 402){
+        _handleError(response, context);
+        return {};
+      }else {
         _handleError(response, context);
         return {};
       }
@@ -125,7 +133,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getUserInfo(String nickname) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserInfo');
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserInfo/$nickname');
 
     final response = await http.get(
       url,
@@ -150,24 +158,39 @@ class ApiService {
     }
   }
 
-  // Metodo para mostrar el diálogo de verificación
+  Future<Uint8List?> fetchUserImage(String nickname) async {
+    final String url = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        return response.bodyBytes;
+      } else {
+        throw Exception('Error al obtener la imagen: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Error: $e");
+      return null;
+    }
+  }
+
   Future<void> showVerificationDialog(BuildContext context, int userId) async {
     final TextEditingController _verificationCodeController =
-        TextEditingController();
+    TextEditingController();
 
     return showDialog<void>(
       context: context,
-      barrierDismissible:
-          false,
-      builder: (BuildContext context) {
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) { // Este es el contexto del diálogo
         return AlertDialog(
-          title: Text('Enter Verification Code'),
+          title: const Text('Enter Verification Code'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _verificationCodeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Enter 6-digit code',
                   border: OutlineInputBorder(),
                 ),
@@ -178,28 +201,30 @@ class ApiService {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Submit'),
+              child: const Text('Submit'),
               onPressed: () async {
                 String code = _verificationCodeController.text;
 
                 if (code.length == 6) {
-                  final verifyResponse =
-                      await verifyCode(userId, code, context);
+                  final verifyResponse = await verifyCode(userId, code, context);
 
                   if (verifyResponse.isNotEmpty) {
-                    Navigator.of(context).pop();
+                    // Cerrar el diálogo antes de navegar
+                    Navigator.of(dialogContext).pop();
+
                     _showSnackPositiveBar(context, 'Successful verification code');
-                    // Navegar a la pantalla MainView
+
+                    // Usar el `context` original para la navegación
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => MainView()),
                     );
                   } else {
                     _showErrorSnackbar(
-                        context, 'Invalid code. Please try again.');
+                        dialogContext, 'Invalid code. Please try again.');
                   }
                 } else {
-                  _showErrorSnackbar(context,
+                  _showErrorSnackbar(dialogContext,
                       'Please enter a valid 6-digit code.');
                 }
               },
@@ -209,6 +234,7 @@ class ApiService {
       },
     );
   }
+
 
   void _handleError(http.Response response, BuildContext context) {
     if (response.statusCode == 401) {

@@ -85,7 +85,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                   hint: Text('Status'),
                   value: selectedStatus,
                   onChanged: (value) => setState(() => selectedStatus = value),
-                  items: ['publishing', 'complete', 'hiatus', 'discontinued', 'upcoming']
+                  items: ['Default','publishing', 'complete', 'hiatus', 'discontinued', 'upcoming']
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
                 ),

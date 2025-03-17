@@ -5,6 +5,7 @@ class UserStorage {
   static Future<void> saveUserData(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userData', jsonEncode(userData));
+    print("Datos guardados correctamente");
   }
 
   static Future<Map<String, dynamic>?> getUserData() async {
