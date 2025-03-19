@@ -132,7 +132,7 @@ class MangaView extends StatelessWidget {
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView( // Agregado SingleChildScrollView para hacer todo desplazable
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

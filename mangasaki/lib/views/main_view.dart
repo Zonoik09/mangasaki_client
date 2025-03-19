@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mangasaki/connection/api_service.dart';
+import 'package:mangasaki/views/profile_view.dart';
 import 'package:mangasaki/views/search_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
@@ -179,9 +180,7 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       _principalView(context),
-      Center(
-          child: Text('Profile',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
+      ProfileView(),
       Center(
           child: Text('Social',
               style: TextStyle(fontSize: 24, color: Colors.white))),
@@ -211,7 +210,6 @@ class _MainViewState extends State<MainView> {
               // Extraemos los datos del usuario
               final userData = snapshot.data!;
               final nickname = userData['resultat']['nickname'] ?? 'Usuario';
-              final Future<Uint8List?> image = ApiService().fetchUserImage(nickname);
 
 
               return Column(

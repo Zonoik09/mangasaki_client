@@ -120,8 +120,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        return responseData;
+        return jsonDecode(response.body);
       } else {
         _showSnackBar(context, 'Incorrect verification code.');
         return {};
@@ -158,20 +157,30 @@ class ApiService {
     }
   }
 
-  Future<Uint8List?> fetchUserImage(String nickname) async {
-    final String url = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+  Future<Map<String, dynamic>> changeProfilePicture(String username, String image, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'base64': image,
+        }),
+      );
 
       if (response.statusCode == 200) {
-        return response.bodyBytes;
+        print("Se ha subido la imagen con exito");
+        return jsonDecode(response.body);
       } else {
-        throw Exception('Error al obtener la imagen: ${response.statusCode}');
+        _showSnackBar(context, 'Error uploading the image');
+        throw Exception("Error");
       }
+
     } catch (e) {
-      print("Error: $e");
-      return null;
+      _showSnackBar(context, 'Error uploading the image $e');
+      throw Exception('Error verifying the code: $e');
     }
   }
 
