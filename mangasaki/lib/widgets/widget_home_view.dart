@@ -55,19 +55,19 @@ class CWHomeMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    return Column( // Apila los elementos en pantallas pequeñas
-      mainAxisSize: MainAxisSize.min, // Minimiza el espacio ocupado
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset(
           icon,
-          width: screenWidth * 0.2, // Ajusta el tamaño del ícono
-          height: screenWidth * 0.2, // Ajusta el tamaño del ícono
+          width: screenWidth * 0.2,
+          height: screenWidth * 0.2,
         ),
         SizedBox(height: 12),
         Text(
           title,
           style: TextStyle(
-            fontSize: screenWidth * 0.05, // Ajusta el tamaño del texto
+            fontSize: screenWidth * 0.05,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -77,7 +77,7 @@ class CWHomeMobile extends StatelessWidget {
         Text(
           subtitle,
           style: TextStyle(
-            fontSize: screenWidth * 0.04, // Ajusta el tamaño del texto
+            fontSize: screenWidth * 0.04,
             color: Colors.white70,
           ),
           textAlign: TextAlign.center,
@@ -105,14 +105,14 @@ class CWHomeDesktop extends StatelessWidget {
         double screenWidth = constraints.maxWidth;
 
         return Align(
-          alignment: Alignment.bottomCenter, // Asegura que los elementos se alineen al fondo
-          child: Row( // Mantiene la disposición horizontal en pantallas grandes
+          alignment: Alignment.bottomCenter,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SvgPicture.asset(
                 icon,
-                width: screenWidth * 0.1, // Ajusta el tamaño del ícono
-                height: screenWidth * 0.1, // Ajusta el tamaño del ícono
+                width: screenWidth * 0.1,
+                height: screenWidth * 0.1,
               ),
               SizedBox(width: 16),
               Expanded(
@@ -122,7 +122,7 @@ class CWHomeDesktop extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.05, // Ajusta el tamaño del texto
+                        fontSize: screenWidth * 0.05,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -131,7 +131,7 @@ class CWHomeDesktop extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: screenWidth * 0.04, // Ajusta el tamaño del texto
+                        fontSize: screenWidth * 0.04,
                         color: Colors.white70,
                       ),
                       maxLines: 3,
