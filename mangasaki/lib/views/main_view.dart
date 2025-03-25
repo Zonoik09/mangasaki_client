@@ -236,7 +236,7 @@ class _MainViewState extends State<MainView> {
                           child: ClipOval(
                             child: Image.network(
                               // Se añade el timestamp para evitar la caché
-                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname?${DateTime.now().millisecondsSinceEpoch}",
+                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname",
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
