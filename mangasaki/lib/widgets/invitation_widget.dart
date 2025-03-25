@@ -80,7 +80,8 @@ class InvitationWidgetDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.15,
+      width: 250, // Ancho fijo para escritorio
+      height: 400, // Altura fija para mantener el widget constante
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -96,26 +97,41 @@ class InvitationWidgetDesktop extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Imagen de perfil
-          CircleAvatar(
-            radius: 70,
-            backgroundImage: NetworkImage(profileImageUrl),
+          // Imagen proporcional que se ajusta al tamaño disponible
+          LayoutBuilder(
+            builder: (context, constraints) {
+              double imageSize = constraints.maxWidth * 0.4; // La imagen ocupará el 40% del ancho disponible
+              return CircleAvatar(
+                radius: imageSize / 2, // El radio es proporcional al tamaño calculado
+                backgroundImage: NetworkImage(profileImageUrl),
+              );
+            },
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 12), // Espacio entre la imagen y la descripción
 
-          // Mensaje
-          Text(
-            "$username has sent you a friend request",
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 16),
+          // Descripción debajo de la imagen
+          Expanded(
+            child: Center(
+              child: Text(
+                "$username has sent you a friend request",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14),
+                maxLines: 2, // Limita a 2 líneas para evitar desbordamientos
+                overflow: TextOverflow.ellipsis, // Asegura que el texto no se desborde
+              ),
+            ),
           ),
+
+          // Espacio entre la descripción y los botones
           const SizedBox(height: 12),
 
-          // Botones
+          // Botones alineados al fondo
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // Botón de aceptar menos ancho
               _buildButton("Accept", Colors.green, onAccept),
+              // Botón de rechazar menos ancho
               _buildButton("Decline", Colors.red, onDecline),
             ],
           ),
@@ -124,19 +140,24 @@ class InvitationWidgetDesktop extends StatelessWidget {
     );
   }
 
+  // Widget para el botón
   Widget _buildButton(String text, Color color, VoidCallback onPressed) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      onPressed: onPressed,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+    return SizedBox(
+      width: 82, 
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14), 
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
 }
+
