@@ -7,7 +7,6 @@ import '../connection/api_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
 
@@ -42,9 +41,8 @@ class _ProfileViewState extends State<ProfileView> {
             final userData = snapshot.data!;
             final nickname = userData['resultat']['nickname'] ?? 'User';
             final likes = userData['likes'] ?? 0;
-            // Establece la URL de la imagen de perfil inicial
 
-            // Tendria que haber un await para que cargue la información cuando se cambie esto.
+            // Establece la URL de la imagen de perfil inicial
             profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
 
             return Container(
@@ -89,18 +87,13 @@ class _ProfileViewState extends State<ProfileView> {
                     ],
                   ),
                   const SizedBox(height: 10),
-
-                  // Subir la imagen
                   ElevatedButton.icon(
                     onPressed: () async {
                       String? base64File = await pickFileAndConvertToBase64();
                       if (base64File != null) {
-                        // Llama a la API para cambiar la imagen de perfil
-                        ApiService().changeProfilePicture(nickname, base64File, context).then((_) {
-                          // Una vez que la imagen se haya cambiado, actualiza la URL de la imagen de perfil
-                          setState(() {
-                            profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname?$base64File";
-                          });
+                        await ApiService().changeProfilePicture(nickname, base64File, context);
+                        setState(() {
+                          profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname?${DateTime.now().millisecondsSinceEpoch}";
                         });
                       } else {
                         print("No se seleccionó ningún archivo.");
@@ -116,7 +109,6 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                     ),
                   ),
-                  /////////////////////////////////////////////////////////////
                   const SizedBox(height: 20),
                   const Text(
                     "Collections",
@@ -162,21 +154,14 @@ class _ProfileViewState extends State<ProfileView> {
   }
 }
 
-
-//Funcion para elegir una imagen.
 Future<String?> pickFileAndConvertToBase64() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles();
 
   if (result != null) {
     File file = File(result.files.single.path!);
     List<int> fileBytes = await file.readAsBytes();
-    String base64String = base64Encode(fileBytes);
-    return base64String;
+    return base64Encode(fileBytes);
   } else {
-    // Usuario canceló la selección
     return null;
   }
 }
-
-
-

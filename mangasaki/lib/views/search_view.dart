@@ -29,22 +29,44 @@ class _MangaSearchViewState extends State<MangaSearchView> {
 
   Map<int, int> genreStates = {}; // 0: no seleccionado, 1: incluido, 2: excluido
   String? selectedStatus;
-  String selectedOrderBy = 'mal_id';
+  String selectedOrderBy = "Default";
+
+  // Mapeo de los valores del Dropdown a los valores correctos de la API
+  final Map<String, String> orderByMap = {
+    'Default': 'mal_id',
+    'Title': 'title',
+    'Score': 'score',
+    'Rank': 'rank',
+    'Popularity': 'popularity',
+  };
 
   Future<void> _searchManga() async {
     setState(() => _isLoading = true);
+
     final includedGenres = genreStates.entries
         .where((entry) => entry.value == 1)
         .map((entry) => entry.key)
         .join(',');
+
     final excludedGenres = genreStates.entries
         .where((entry) => entry.value == 2)
         .map((entry) => entry.key)
         .join(',');
+
+    final String orderBy = orderByMap[selectedOrderBy] ?? 'mal_id'; // Conversión con el mapa
+    final String status = selectedStatus ?? '';
+
     try {
       final response = await http.get(
-        Uri.parse('https://api.jikan.moe/v4/manga?q=${_searchController.text}&genres=$includedGenres&genres_exclude=$excludedGenres'),
+        Uri.parse(
+          'https://api.jikan.moe/v4/manga?q=${_searchController.text}'
+              '&genres=$includedGenres'
+              '&genres_exclude=$excludedGenres'
+              '&order_by=$orderBy'
+              '&status=$status',
+        ),
       );
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
@@ -63,6 +85,8 @@ class _MangaSearchViewState extends State<MangaSearchView> {
       setState(() => _isLoading = false);
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +107,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                 SizedBox(width: 10),
                 DropdownButton<String>(
                   hint: Text('Status'),
-                  value: selectedStatus,
+                  value: selectedStatus == 'Default' ? null : selectedStatus,
                   onChanged: (value) => setState(() => selectedStatus = value),
                   items: ['Default','publishing', 'complete', 'hiatus', 'discontinued', 'upcoming']
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -91,17 +115,21 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                 ),
                 SizedBox(width: 10),
                 DropdownButton<String>(
-                  hint: Text('Order By'),
-                  value: selectedOrderBy,
+                  hint: Text('Order By'), // Esto se mostrará cuando no haya selección
+                  value: selectedOrderBy == 'Default' ? null : selectedOrderBy, // Oculta "Default"
                   onChanged: (value) {
                     if (value != null) {
                       setState(() => selectedOrderBy = value);
                     }
                   },
-                  items: ['mal_id', 'title', 'score', 'rank', 'popularity']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  items: ['Default', 'Title', 'Score', 'Rank', 'Popularity']
+                      .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ))
                       .toList(),
                 ),
+
                 SizedBox(width: 10),
                 ElevatedButton.icon(
                   onPressed: () => setState(() => _showGenres = !_showGenres),

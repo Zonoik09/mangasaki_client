@@ -55,7 +55,7 @@ class _TopMangasViewState extends State<TopMangasView> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         actions: [
           IconButton(

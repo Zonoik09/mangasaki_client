@@ -293,32 +293,32 @@ class MangaWidgetMobile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(5.0),  //
+          padding: const EdgeInsets.all(5.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 📌 Imagen del manga con status y estrellas debajo
+              // Imagen del manga con status y estrellas debajo
               Column(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
                       imageUrl,
-                      width: 100,  // 🔹 Mantengo el tamaño de la imagen
-                      height: 150, // 🔹 Se mantiene el tamaño de la imagen
+                      width: 50,
+                      height: 70,
                       fit: BoxFit.cover,
                     ),
                   ),
-                  const SizedBox(height: 6),  // 🔹 Reducido el espacio entre imagen y status
+                  const SizedBox(height: 6),
                   statusWidget(status),
-                  const SizedBox(height: 6),  // 🔹 Reducido el espacio entre status y estrellas
+                  const SizedBox(height: 6),
                   starRating(score),
                 ],
               ),
 
-              const SizedBox(width: 10),  // 🔹 Espacio entre la imagen y los detalles
+              const SizedBox(width: 10),
 
-              // 📌 Detalles del manga a la derecha
+              // Detalles del manga a la derecha
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,14 +333,14 @@ class MangaWidgetMobile extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),  // 🔹 Reducido el espacio entre título y descripción
+                    const SizedBox(height: 6),
                     Text(
                       cleanedDescription,
-                      style: const TextStyle(fontSize: 14, color: Colors.white),
-                      maxLines: 3,
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),  // 🔹 Reducido el espacio entre descripción y ranking
+                    const SizedBox(height: 8),
                     customRatingWidget(rank),
                   ],
                 ),
