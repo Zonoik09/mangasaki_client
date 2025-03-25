@@ -53,7 +53,6 @@ class _MainViewState extends State<MainView> {
           maxWidth: _isMobile ? double.infinity : MediaQuery.of(context).size.width * 0.8,
           maxHeight: _isMobile ? double.infinity : MediaQuery.of(context).size.height * 0.8,
         ),
-
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular((_isMobile ? 0 : 15)),
           boxShadow: [
@@ -65,31 +64,41 @@ class _MainViewState extends State<MainView> {
         ),
         child: Column(
           children: [
-            // Primer sección
+            // Primera sección (título y subtítulo)
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.25,
-              child: Column(
-                children: [
-                  SizedBox(height: (_isMobile ? 10 : 40)),
-                  Text(
-                    "The Next Generation of Manga Platform",
-                    style: TextStyle(
-                      fontSize: (_isMobile ? 25 : 40),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: (_isMobile ? 5 : 20)),
-                  Text(
-                    "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
-                    style: TextStyle(
-                      fontSize: (_isMobile ? 18 : 24),
-                      color: Colors.white70,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  double screenWidth = MediaQuery.of(context).size.width;
+                  bool isMobile = screenWidth < 800;
+                  double fontSizeTitle = isMobile ? screenWidth * 0.06 : screenWidth * 0.04;
+                  double fontSizeSubtitle = isMobile ? screenWidth * 0.04 : screenWidth * 0.025;
+                  double titleSpacing = isMobile ? 10 : 40;
+                  double subtitleSpacing = isMobile ? 5 : 20;
+
+                  return Column(
+                    children: [
+                      SizedBox(height: titleSpacing),
+                      Text(
+                        "The Next Generation of Manga Platform",
+                        style: TextStyle(
+                          fontSize: fontSizeTitle,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: subtitleSpacing),
+                      Text(
+                        "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
+                        style: TextStyle(
+                          fontSize: fontSizeSubtitle,
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
             // Segunda sección
@@ -313,18 +322,16 @@ class _MainViewState extends State<MainView> {
           IconButton(
             icon: Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
-              // Acción cuando se toca la campanita
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NotificationView()),
               );
             },
           ),
-          if (MediaQuery.of(context).size.width < 600) // Solo en móviles
+          if (MediaQuery.of(context).size.width < 600)
             IconButton(
               icon: Icon(Icons.camera_alt, color: Colors.white),
               onPressed: () {
-                // Acción cuando se toca la cámara
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CameraScreen()),
