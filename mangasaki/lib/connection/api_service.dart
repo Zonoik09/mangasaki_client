@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
@@ -34,6 +35,7 @@ class ApiService {
     }
   }
 
+  // Metodo para register
   Future<Map<String, dynamic>> register(String username, String pass,
       String pass2, String phone, BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/register');
@@ -61,7 +63,14 @@ class ApiService {
         // Una vez registrado, mostramos el diálogo de verificación
         showVerificationDialog(context, userId);
         return responseData;
-      } else {
+
+      } else if (response.statusCode == 401){
+        _handleError(response, context);
+        return {};
+      } else if (response.statusCode == 402){
+        _handleError(response, context);
+        return {};
+      }else {
         _handleError(response, context);
         return {};
       }
@@ -71,8 +80,9 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> analyzeBook(String base64Image) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/book/analyzeBook');
+  // Metodo para analizar el manga
+  Future<Map<String, dynamic>> analyzeManga(String base64Image) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/manga/analyzeManga');
 
     try {
       final response = await http.post(
@@ -94,6 +104,147 @@ class ApiService {
     }
   }
 
+  // Llamada a la api de verificación de codigo.
+  Future<Map<String, dynamic>> verifyCode(
+      int userId, String code, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/validate');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId.toString(),
+          'code': code,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        _showSnackBar(context, 'Incorrect verification code.');
+        return {};
+      }
+    } catch (e) {
+      _showSnackBar(context, 'Error verifying the code: $e');
+      throw Exception('Error verifying the code: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserInfo(String nickname) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserInfo/$nickname');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
+    }
+  }
+
+  Future<List<dynamic>> getTopMangas() async {
+    final response = await http.get(Uri.parse('https://api.jikan.moe/v4/top/manga?limit=24'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'];
+    } else {
+      throw Exception('Failed to load top mangas');
+    }
+  }
+
+  Future<Map<String, dynamic>> changeProfilePicture(String username, String image, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'base64': image,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print("Se ha subido la imagen con exito");
+        return jsonDecode(response.body);
+      } else {
+        _showSnackBar(context, 'Error uploading the image');
+        throw Exception("Error");
+      }
+
+    } catch (e) {
+      _showSnackBar(context, 'Error uploading the image $e');
+      throw Exception('Error verifying the code: $e');
+    }
+  }
+
+  Future<void> showVerificationDialog(BuildContext context, int userId) async {
+    final TextEditingController _verificationCodeController =
+    TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) { // Este es el contexto del diálogo
+        return AlertDialog(
+          title: const Text('Enter Verification Code'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _verificationCodeController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter 6-digit code',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Submit'),
+              onPressed: () async {
+                String code = _verificationCodeController.text;
+
+                if (code.length == 6) {
+                  final verifyResponse = await verifyCode(userId, code, context);
+
+                  if (verifyResponse.isNotEmpty) {
+                    // Cerrar el diálogo antes de navegar
+                    Navigator.of(dialogContext).pop();
+
+                    _showSnackPositiveBar(context, 'Successful verification code');
+
+                    // Usar el `context` original para la navegación
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainView()),
+                    );
+                  } else {
+                    _showErrorSnackbar(
+                        dialogContext, 'Invalid code. Please try again.');
+                  }
+                } else {
+                  _showErrorSnackbar(dialogContext,
+                      'Please enter a valid 6-digit code.');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   void _handleError(http.Response response, BuildContext context) {
     if (response.statusCode == 401) {
       _showSnackBar(context, 'Invalid credentials. Please check your details.');
@@ -113,7 +264,7 @@ class ApiService {
         content: Text(
           message,
           style:
-              const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
           textAlign: TextAlign.center,
         ),
         backgroundColor: Colors.red,
@@ -136,103 +287,15 @@ class ApiService {
   }
 
   static final encrypt.Key key =
-      encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
+  encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
   static final encrypt.IV iv =
-      encrypt.IV.fromLength(16); // Vector de inicialización
+  encrypt.IV.fromLength(16); // Vector de inicialización
 
   // Metodo para encriptar la contraseña
   String _encryptPassword(String password) {
     final encrypter = encrypt.Encrypter(encrypt.AES(key));
     final encrypted = encrypter.encrypt(password, iv: iv);
     return encrypted.base64;
-  }
-
-  // Llamada a la api de verificación de codigo.
-  Future<Map<String, dynamic>> verifyCode(
-      int userId, String code, BuildContext context) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/validate');
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': userId.toString(),
-          'code': code,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        return responseData;
-      } else {
-        _showSnackBar(context, 'Incorrect verification code.');
-        return {};
-      }
-    } catch (e) {
-      _showSnackBar(context, 'Error verifying the code: $e');
-      throw Exception('Error verifying the code: $e');
-    }
-  }
-
-  // Metodo para mostrar el diálogo de verificación
-  Future<void> showVerificationDialog(BuildContext context, int userId) async {
-    final TextEditingController _verificationCodeController =
-        TextEditingController();
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible:
-          false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Enter Verification Code'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _verificationCodeController,
-                decoration: InputDecoration(
-                  hintText: 'Enter 6-digit code',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Submit'),
-              onPressed: () async {
-                String code = _verificationCodeController.text;
-
-                if (code.length == 6) {
-                  final verifyResponse =
-                      await verifyCode(userId, code, context);
-
-                  if (verifyResponse.isNotEmpty) {
-                    Navigator.of(context).pop();
-                    _showSnackPositiveBar(context, 'Successful verification code');
-                    // Navegar a la pantalla MainView
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => MainView()),
-                    );
-                  } else {
-                    _showErrorSnackbar(
-                        context, 'Invalid code. Please try again.');
-                  }
-                } else {
-                  _showErrorSnackbar(context,
-                      'Please enter a valid 6-digit code.');
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   // Corregir la función _showErrorSnackbar pasando el context correctamente

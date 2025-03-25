@@ -153,7 +153,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       String base64Image = base64Encode(imageBytes);
 
       // Enviar la imagen a la API
-      Map<String, dynamic> response = await widget.apiService.analyzeBook(base64Image);
+      Map<String, dynamic> response = await widget.apiService.analyzeManga(base64Image);
 
       // Mostrar la respuesta
       // Despues se tendra que comparar el type, dependiendo cual sea mostrar una cosa o otra

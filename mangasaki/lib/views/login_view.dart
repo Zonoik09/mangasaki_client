@@ -5,8 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../connection/api_service.dart';
+import '../connection/userStorage.dart';
 import 'main_view.dart';
-import 'package:mangasaki/widgets/global_state.dart' as global;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -201,7 +201,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (loginResponse['status'] == 'OK') {
             // Navegar a la pantalla MainView
-            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text); // esto es temporal
+
+            try {
+              final userInfo = await ApiService().getUserInfo(_usernameController.text);
+              await UserStorage.saveUserData(userInfo);
+            } catch (e) {
+              print('Error al obtener y guardar la información del usuario: $e');
+            }
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MainView()),
@@ -242,7 +248,13 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
           );
           if (registerResponse['status'] == 'OK') {
-            Provider.of<global.GlobalState>(context, listen: false).updateUsername(_usernameController.text);
+            try {
+              final userInfo = await ApiService().getUserInfo(_usernameController.text);
+              await UserStorage.saveUserData(userInfo);
+            } catch (e) {
+              print('Error al obtener y guardar la información del usuario: $e');
+            }
+
           } else {
             _showErrorSnackbar('Registration error. Please try again.');
           }
