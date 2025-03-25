@@ -7,6 +7,7 @@ import '../connection/api_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:universal_platform/universal_platform.dart';
 
+
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
 
@@ -59,7 +60,8 @@ class _ProfileViewState extends State<ProfileView> {
                         backgroundColor: Colors.transparent,
                         child: ClipOval(
                           child: Image.network(
-                            profileImageUrl!,
+                            // Añadimos el parámetro de marca de tiempo para evitar caché
+                            profileImageUrl! + "?${DateTime.now().millisecondsSinceEpoch}",
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
@@ -93,7 +95,8 @@ class _ProfileViewState extends State<ProfileView> {
                       if (base64File != null) {
                         await ApiService().changeProfilePicture(nickname, base64File, context);
                         setState(() {
-                          profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname?${DateTime.now().millisecondsSinceEpoch}";
+                          // Aseguramos que la URL de la imagen de perfil se actualice con el parámetro de tiempo
+                          profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
                         });
                       } else {
                         print("No se seleccionó ningún archivo.");
@@ -153,6 +156,7 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 }
+
 
 Future<String?> pickFileAndConvertToBase64() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles();
