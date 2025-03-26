@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mangasaki/widgets/manga_widget.dart';
+
+import '../widgets/simplemanga_widget.dart';
 
 class MangaSearchView extends StatefulWidget {
   @override
@@ -10,9 +13,10 @@ class MangaSearchView extends StatefulWidget {
 class _MangaSearchViewState extends State<MangaSearchView> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _mangaResults = [];
-  List<dynamic> _mangaRandom = [];
   bool _isLoading = false;
   bool _showGenres = false;
+  int _lastPage = 1;
+  int _currentPage = 1;
 
   @override
   void initState() {
@@ -65,8 +69,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
     {'id': 32, 'name': 'Vampire'}
   ];
 
-  Map<int, int> genreStates =
-  {}; // 0: no seleccionado, 1: incluido, 2: excluido
+  Map<int, int> genreStates = {}; // 0: no seleccionado, 1: incluido, 2: excluido
   String? selectedStatus;
   String selectedOrderBy = "Default";
 
@@ -92,25 +95,25 @@ class _MangaSearchViewState extends State<MangaSearchView> {
         .map((entry) => entry.key)
         .join(',');
 
-    final String orderBy =
-        orderByMap[selectedOrderBy] ?? 'mal_id'; // Conversión con el mapa
+    final String orderBy = orderByMap[selectedOrderBy] ?? 'mal_id';
     final String status = selectedStatus ?? '';
-
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://api.jikan.moe/v4/manga?q=${_searchController.text}'
-              '&genres=$includedGenres'
-              '&genres_exclude=$excludedGenres'
-              '&order_by=$orderBy'
-              '&status=$status',
-        ),
-      );
+      String url = 'https://api.jikan.moe/v4/manga?q=${_searchController.text}';
+
+      if (includedGenres.isNotEmpty) url += '&genres=$includedGenres';
+      if (excludedGenres.isNotEmpty) url += '&genres_exclude=$excludedGenres';
+      if (orderBy.isNotEmpty) url += '&order_by=$orderBy';
+      if (status != "Default") url += '&status=$status';
+      if (_currentPage > 1) url += '&page=$_currentPage';
+
+      final response = await http.get(Uri.parse(url));
+
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           _mangaResults = data['data'] ?? [];
+          _lastPage = data['pagination']['last_visible_page'] ?? 1;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,8 +163,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                 ),
                 SizedBox(width: 10),
                 DropdownButton<String>(
-                  hint: Text(
-                      'Order By'), // Esto se mostrará cuando no haya selección
+                  hint: Text('Order By'),
                   value: selectedOrderBy == 'Default'
                       ? null
                       : selectedOrderBy, // Oculta "Default"
@@ -238,26 +240,16 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                 } else {
                   final randomMangas = snapshot.data!;
                   return ListView.builder(
-                    itemCount: 20,
+                    itemCount: 24,
                     itemBuilder: (context, index) {
                       final manga = randomMangas[index];
                       if (manga['entry'] is List && manga['entry'].isNotEmpty) {
                         final firstEntry = manga['entry'][0];
-                        final imageUrl = firstEntry['images']?['jpg']?['image_url'] ??
+                        final image = firstEntry['images']?['jpg']?['image_url'] ??
                             'https://picsum.photos/200/300';
-                        return ListTile(
-                          leading: Image.network(
-                            imageUrl,
-                            width: 50,
-                            height: 70,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text(firstEntry['title'] ?? 'No title'),
-                          subtitle: Text(
-                              'Score: ${firstEntry['score'] ?? 'N/A'}'),
-                        );
+                        return SimpleMangaWidget(id: firstEntry['mal_id'], title: firstEntry['title'],imageUrl: image);
                       } else {
-                        return SizedBox(); // En caso de que no haya mangas en 'entry'
+                        return SizedBox();
                       }
                     }
                   );
@@ -268,23 +260,66 @@ class _MangaSearchViewState extends State<MangaSearchView> {
               itemCount: _mangaResults.length,
               itemBuilder: (context, index) {
                 final manga = _mangaResults[index];
-                return ListTile(
-                  leading: Image.network(
-                    manga['images']['jpg']['image_url'],
-                    width: 50,
-                    height: 70,
-                    fit: BoxFit.cover,
+                List<String> generos = [];
+
+                for (var genre in manga["genres"]) {
+                  generos.add(genre['name']);
+                }
+                for (var genre in manga["themes"]) {
+                  generos.add(genre["name"]);
+                }
+                for (var genre in manga["demographics"]) {
+                  generos.add(genre["name"]);
+                }
+
+                return SizedBox(
+                  height: 200,
+                  child: MangaWidget(
+                    title: manga['title'],
+                    imageUrl: manga['images']['jpg']['image_url'],
+                    status: manga['status'],
+                    score: manga['score'] ?? 0,
+                    rank: manga['rank'] ?? 99999,
+                    description: manga['synopsis'] ?? 'N/A',
+                    chapters: manga["chapters"] ?? -1,
+                    genres: generos,
                   ),
-                  title: Text(manga['title']),
-                  subtitle:
-                  Text('Score: ${manga['score'] ?? 'N/A'}'),
                 );
               },
             ),
           ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.first_page),
+                onPressed: _currentPage > 1 ? () => _changePage(1) : null,
+              ),
+              IconButton(
+                icon: Icon(Icons.navigate_before),
+                onPressed: _currentPage > 1 ? () => _changePage(_currentPage - 1) : null,
+              ),
+              Text('Page $_currentPage of $_lastPage'),
+              IconButton(
+                icon: Icon(Icons.navigate_next),
+                onPressed: _currentPage < _lastPage ? () => _changePage(_currentPage + 1) : null,
+              ),
+              IconButton(
+                icon: Icon(Icons.last_page),
+                onPressed: _currentPage < _lastPage ? () => _changePage(_lastPage) : null,
+              ),
+            ],
+          ),
         ],
       ),
     );
+  }
+
+  void _changePage(int newPage) {
+    if (newPage >= 1 && newPage <= _lastPage) {
+      setState(() => _currentPage = newPage);
+      _searchManga();
+    }
   }
 
   Future<List<dynamic>> getRandomMangas() async {
@@ -298,6 +333,3 @@ class _MangaSearchViewState extends State<MangaSearchView> {
     }
   }
 }
-
-
-
