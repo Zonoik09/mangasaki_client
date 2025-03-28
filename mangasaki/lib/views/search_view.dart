@@ -17,6 +17,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
   bool _showGenres = false;
   int _lastPage = 1;
   int _currentPage = 1;
+  bool _showPanel = false;
 
   @override
   void initState() {
@@ -129,191 +130,307 @@ class _MangaSearchViewState extends State<MangaSearchView> {
     }
   }
 
+  Widget _buildSlidingPanel() {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      width: _showPanel ? 300 : 0,
+      height: double.infinity,
+      color: Colors.white,
+      padding: EdgeInsets.all(16),
+      child: _showPanel
+          ? Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => setState(() => _showPanel = false),
+            ),
+          ),
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(labelText: 'Search...'),
+          ),
+          SizedBox(height: 10),
+          DropdownButton<String>(
+            hint: Text('Status'),
+            value: selectedStatus == 'Default' ? null : selectedStatus,
+            onChanged: (value) => setState(() => selectedStatus = value),
+            items: ['Default', 'publishing', 'complete', 'hiatus']
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+          ),
+          SizedBox(height: 10),
+          DropdownButton<String>(
+            hint: Text('Order By'),
+            value: selectedOrderBy == 'Default' ? null : selectedOrderBy,
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => selectedOrderBy = value);
+              }
+            },
+            items: ['Default', 'Title', 'Score', 'Rank', 'Popularity']
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+          ),
+          SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: _searchManga,
+            icon: Icon(Icons.search),
+            label: Text('Filter'),
+          ),
+        ],
+      )
+          : null,
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Manga Search')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
+    return LayoutBuilder(
+        builder: (context, constraints) {
+          bool isMobile = constraints.maxWidth < 800;
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Manga Search'),
+              actions: isMobile
+                  ? [
+                IconButton(
+                  icon: Icon(Icons.filter_alt),
+                  onPressed: () => setState(() => _showPanel = !_showPanel),
+                )
+              ]
+                  : [],
+            ),
+            body: Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(labelText: 'Search...'),
+                if (!isMobile)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(labelText: 'Search...'),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        DropdownButton<String>(
+                          hint: Text('Status'),
+                          value: selectedStatus == 'Default'
+                              ? null
+                              : selectedStatus,
+                          onChanged: (value) =>
+                              setState(() => selectedStatus = value),
+                          items: [
+                            'Default',
+                            'publishing',
+                            'complete',
+                            'hiatus',
+                            'discontinued',
+                            'upcoming'
+                          ]
+                              .map((e) =>
+                              DropdownMenuItem(value: e,
+                                  child: Text(e)))
+                              .toList(),
+                        ),
+                        SizedBox(width: 10),
+                        DropdownButton<String>(
+                          hint: Text('Order By'),
+                          value: selectedOrderBy == 'Default'
+                              ? null
+                              : selectedOrderBy, // Oculta "Default"
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => selectedOrderBy = value);
+                            }
+                          },
+                          items: [
+                            'Default',
+                            'Title',
+                            'Score',
+                            'Rank',
+                            'Popularity'
+                          ]
+                              .map((e) =>
+                              DropdownMenuItem(
+                                value: e,
+                                child: Text(e),
+                              ))
+                              .toList(),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          onPressed: () =>
+                              setState(() => _showGenres = !_showGenres),
+                          icon: Icon(Icons.filter_list),
+                          label: Text('Genres'),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          onPressed: _searchManga,
+                          icon: Icon(Icons.search),
+                          label: Text('Filter'),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_showGenres)
+                  Wrap(
+                    spacing: 5,
+                    runSpacing: 5,
+                    children: genres.map((genre) {
+                      int state = genreStates[genre['id']] ?? 0;
+                      IconData icon = state == 1
+                          ? Icons.check_circle
+                          : state == 2
+                          ? Icons.cancel
+                          : Icons.circle;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            genreStates[genre['id']] = (state + 1) % 3;
+                          });
+                        },
+                        child: Chip(
+                          avatar: Icon(icon,
+                              color: state == 0
+                                  ? Colors.grey
+                                  : state == 1
+                                  ? Colors.green
+                                  : Colors.red),
+                          label: Text(genre['name'], style: TextStyle(
+                              fontSize: 12)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return _mangaResults.isEmpty
+                          ? FutureBuilder<List<dynamic>>(
+                        future: _loadRandomMangas(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Center(
+                                child: Text('No random mangas found.'));
+                          } else {
+                            final randomMangas = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: 24,
+                              itemBuilder: (context, index) {
+                                final manga = randomMangas[index];
+                                if (manga['entry'] is List &&
+                                    manga['entry'].isNotEmpty) {
+                                  final firstEntry = manga['entry'][0];
+                                  final image = firstEntry['images']?['jpg']?['image_url'] ??
+                                      'https://picsum.photos/200/300';
+                                  return SimpleMangaWidget(
+                                    id: firstEntry['mal_id'],
+                                    title: firstEntry['title'],
+                                    imageUrl: image,
+                                  );
+                                } else {
+                                  return SizedBox();
+                                }
+                              },
+                            );
+                          }
+                        },
+                      )
+                          : ListView.builder(
+                        itemCount: _mangaResults.length,
+                        itemBuilder: (context, index) {
+                          final manga = _mangaResults[index];
+                          List<String> generos = [];
+
+                          for (var genre in manga["genres"]) {
+                            generos.add(genre['name']);
+                          }
+                          for (var genre in manga["themes"]) {
+                            generos.add(genre["name"]);
+                          }
+                          for (var genre in manga["demographics"]) {
+                            generos.add(genre["name"]);
+                          }
+
+                          double width = constraints.maxWidth;
+
+                          return SizedBox(
+                            height: 200,
+                            child: width < 800
+                                ? MangaWidgetMobile(
+                              imageUrl: manga['images']['jpg']['image_url'],
+                              status: manga['status'],
+                              score: manga['score'].toDouble(),
+                              rank: manga['rank'],
+                              title: manga['title'],
+                              description: manga["synopsis"],
+                              chapters: manga["chapters"] ?? -1,
+                              genres: generos,
+                            )
+                                : MangaWidget(
+                              imageUrl: manga['images']['jpg']['image_url'],
+                              status: manga['status'],
+                              score: manga['score'].toDouble(),
+                              rank: manga['rank'],
+                              title: manga['title'],
+                              description: manga["synopsis"],
+                              chapters: manga["chapters"] ?? -1,
+                              genres: generos,
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  hint: Text('Status'),
-                  value: selectedStatus == 'Default' ? null : selectedStatus,
-                  onChanged: (value) => setState(() => selectedStatus = value),
-                  items: [
-                    'Default',
-                    'publishing',
-                    'complete',
-                    'hiatus',
-                    'discontinued',
-                    'upcoming'
-                  ]
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  hint: Text('Order By'),
-                  value: selectedOrderBy == 'Default'
-                      ? null
-                      : selectedOrderBy, // Oculta "Default"
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => selectedOrderBy = value);
-                    }
-                  },
-                  items: ['Default', 'Title', 'Score', 'Rank', 'Popularity']
-                      .map((e) =>
-                      DropdownMenuItem(
-                        value: e,
-                        child: Text(e),
-                      ))
-                      .toList(),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: () => setState(() => _showGenres = !_showGenres),
-                  icon: Icon(Icons.filter_list),
-                  label: Text('Genres'),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: _searchManga,
-                  icon: Icon(Icons.search),
-                  label: Text('Filter'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.first_page),
+                      onPressed: _currentPage > 1 ? () => _changePage(1) : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.navigate_before),
+                      onPressed: _currentPage > 1 ? () =>
+                          _changePage(_currentPage - 1) : null,
+                    ),
+                    Text('Page $_currentPage of $_lastPage'),
+                    IconButton(
+                      icon: Icon(Icons.navigate_next),
+                      onPressed: _currentPage < _lastPage ? () =>
+                          _changePage(_currentPage + 1) : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.last_page),
+                      onPressed: _currentPage < _lastPage ? () =>
+                          _changePage(_lastPage) : null,
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
-          if (_showGenres)
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: genres.map((genre) {
-                int state = genreStates[genre['id']] ?? 0;
-                IconData icon = state == 1
-                    ? Icons.check_circle
-                    : state == 2
-                    ? Icons.cancel
-                    : Icons.circle;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      genreStates[genre['id']] = (state + 1) % 3;
-                    });
-                  },
-                  child: Chip(
-                    avatar: Icon(icon,
-                        color: state == 0
-                            ? Colors.grey
-                            : state == 1
-                            ? Colors.green
-                            : Colors.red),
-                    label: Text(genre['name'], style: TextStyle(fontSize: 12)),
-                  ),
-                );
-              }).toList(),
-            ),
-          _isLoading
-              ? CircularProgressIndicator()
-              : Expanded(
-            child: _mangaResults.isEmpty
-                ? FutureBuilder<List<dynamic>>(
-              future: _loadRandomMangas(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No random mangas found.'));
-                } else {
-                  final randomMangas = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: 24,
-                    itemBuilder: (context, index) {
-                      final manga = randomMangas[index];
-                      if (manga['entry'] is List && manga['entry'].isNotEmpty) {
-                        final firstEntry = manga['entry'][0];
-                        final image = firstEntry['images']?['jpg']?['image_url'] ??
-                            'https://picsum.photos/200/300';
-                        return SimpleMangaWidget(id: firstEntry['mal_id'], title: firstEntry['title'],imageUrl: image);
-                      } else {
-                        return SizedBox();
-                      }
-                    }
-                  );
-                }
-              },
-            )
-                : ListView.builder(
-              itemCount: _mangaResults.length,
-              itemBuilder: (context, index) {
-                final manga = _mangaResults[index];
-                List<String> generos = [];
+          );
+        });
+    }
 
-                for (var genre in manga["genres"]) {
-                  generos.add(genre['name']);
-                }
-                for (var genre in manga["themes"]) {
-                  generos.add(genre["name"]);
-                }
-                for (var genre in manga["demographics"]) {
-                  generos.add(genre["name"]);
-                }
-
-                return SizedBox(
-                  height: 200,
-                  child: MangaWidget(
-                    title: manga['title'],
-                    imageUrl: manga['images']['jpg']['image_url'],
-                    status: manga['status'],
-                    score: manga['score'] ?? 0,
-                    rank: manga['rank'] ?? 99999,
-                    description: manga['synopsis'] ?? 'N/A',
-                    chapters: manga["chapters"] ?? -1,
-                    genres: generos,
-                  ),
-                );
-              },
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: Icon(Icons.first_page),
-                onPressed: _currentPage > 1 ? () => _changePage(1) : null,
-              ),
-              IconButton(
-                icon: Icon(Icons.navigate_before),
-                onPressed: _currentPage > 1 ? () => _changePage(_currentPage - 1) : null,
-              ),
-              Text('Page $_currentPage of $_lastPage'),
-              IconButton(
-                icon: Icon(Icons.navigate_next),
-                onPressed: _currentPage < _lastPage ? () => _changePage(_currentPage + 1) : null,
-              ),
-              IconButton(
-                icon: Icon(Icons.last_page),
-                onPressed: _currentPage < _lastPage ? () => _changePage(_lastPage) : null,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   void _changePage(int newPage) {
     if (newPage >= 1 && newPage <= _lastPage) {
