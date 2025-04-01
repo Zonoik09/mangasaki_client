@@ -220,10 +220,12 @@ class _MainViewState extends State<MainView> {
               final userData = snapshot.data!;
               final nickname = userData['resultat']['nickname'] ?? 'Usuario';
 
+              // Asegurar que la imagen de perfil se recarga con un timestamp para evitar caché
+              String profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname?${DateTime.now().millisecondsSinceEpoch}";
 
               return Column(
                 children: <Widget>[
-                 Container(
+                  Container(
                     width: double.infinity,
                     color: const Color.fromARGB(255, 60, 111, 150),
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -235,8 +237,7 @@ class _MainViewState extends State<MainView> {
                           backgroundColor: Colors.white,
                           child: ClipOval(
                             child: Image.network(
-                              // Se añade el timestamp para evitar la caché
-                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname",
+                              profileImageUrl,
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
