@@ -15,6 +15,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
   List<dynamic> _mangaResults = [];
   bool _isLoading = false;
   bool _showGenres = false;
+  bool _showGenresMobile = false;
   int _lastPage = 1;
   int _currentPage = 1;
   bool _showPanel = false;
@@ -23,6 +24,13 @@ class _MangaSearchViewState extends State<MangaSearchView> {
   void initState() {
     super.initState();
     _loadRandomMangas();
+  }
+
+  void _retryFetchMangas() {
+    setState(() {
+      _loadRandomMangas();
+      _mangaResults.clear();
+    });
   }
 
   // Cargar mangas aleatorios
@@ -130,62 +138,137 @@ class _MangaSearchViewState extends State<MangaSearchView> {
     }
   }
 
+  // Esto es un widget que hace que se pueda filtrar en la version mobile
   Widget _buildSlidingPanel() {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
+      height: _showPanel ? 300 : 0, // Altura animada
       curve: Curves.easeInOut,
-      width: _showPanel ? 300 : 0,
-      height: double.infinity,
       color: Colors.white,
       padding: EdgeInsets.all(16),
       child: _showPanel
-          ? Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () => setState(() => _showPanel = false),
+          ? ClipRRect(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: 300,
+              maxHeight: 400,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => setState(() => _showPanel = false),
+                  ),
+                ),
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(labelText: 'Search...'),
+                ),
+                SizedBox(height: 10),
+
+                // Status y Order By en la misma fila
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButton<String>(
+                        hint: Text('Status'),
+                        value: selectedStatus == 'Default' ? null : selectedStatus,
+                        onChanged: (value) => setState(() => selectedStatus = value),
+                        items: ['Default', 'publishing', 'complete', 'hiatus']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Espaciado entre los Dropdowns
+                    Expanded(
+                      child: DropdownButton<String>(
+                        hint: Text('Order By'),
+                        value: selectedOrderBy == 'Default' ? null : selectedOrderBy,
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => selectedOrderBy = value);
+                          }
+                        },
+                        items: ['Default', 'Title', 'Score', 'Rank', 'Popularity']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 10),
+
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          setState(() => _showGenresMobile = !_showGenresMobile),
+                      icon: Icon(Icons.filter_list),
+                      label: Text('Genres'),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton.icon(
+                      onPressed: _searchManga,
+                      icon: Icon(Icons.search),
+                      label: Text('Filter'),
+                    ),
+                  ],
+                ),
+
+                if (_showGenresMobile) ...[
+                  SizedBox(height: 10),
+                  // Scroll para géneros
+                  Container(
+                    height: 100,
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        children: genres.map((genre) {
+                          int state = genreStates[genre['id']] ?? 0;
+                          IconData icon = state == 1
+                              ? Icons.check_circle
+                              : state == 2
+                              ? Icons.cancel
+                              : Icons.circle;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                genreStates[genre['id']] = (state + 1) % 3;
+                              });
+                            },
+                            child: Chip(
+                              avatar: Icon(icon,
+                                  color: state == 0
+                                      ? Colors.grey
+                                      : state == 1
+                                      ? Colors.green
+                                      : Colors.red),
+                              label: Text(
+                                genre['name'],
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          TextField(
-            controller: _searchController,
-            decoration: InputDecoration(labelText: 'Search...'),
-          ),
-          SizedBox(height: 10),
-          DropdownButton<String>(
-            hint: Text('Status'),
-            value: selectedStatus == 'Default' ? null : selectedStatus,
-            onChanged: (value) => setState(() => selectedStatus = value),
-            items: ['Default', 'publishing', 'complete', 'hiatus']
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-          ),
-          SizedBox(height: 10),
-          DropdownButton<String>(
-            hint: Text('Order By'),
-            value: selectedOrderBy == 'Default' ? null : selectedOrderBy,
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => selectedOrderBy = value);
-              }
-            },
-            items: ['Default', 'Title', 'Score', 'Rank', 'Popularity']
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
-          ),
-          SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: _searchManga,
-            icon: Icon(Icons.search),
-            label: Text('Filter'),
-          ),
-        ],
+        ),
       )
-          : null,
+          : SizedBox.shrink(),
     );
   }
+
 
 
   @override
@@ -196,17 +279,33 @@ class _MangaSearchViewState extends State<MangaSearchView> {
           return Scaffold(
             appBar: AppBar(
               title: Text('Manga Search'),
+              bottom: const PreferredSize(
+                preferredSize: Size.fromHeight(1.0),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Colors.black,
+                ),
+              ),
               actions: isMobile
                   ? [
                 IconButton(
                   icon: Icon(Icons.filter_alt),
                   onPressed: () => setState(() => _showPanel = !_showPanel),
+                ),
+                IconButton(
+                  icon: Icon(Icons.refresh),
+                  onPressed: _retryFetchMangas,
                 )
               ]
-                  : [],
+                  : [IconButton(
+                icon: Icon(Icons.refresh),
+                onPressed: _retryFetchMangas,
+              )],
             ),
             body: Column(
               children: [
+                _buildSlidingPanel(),
                 if (!isMobile)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -377,20 +476,20 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                                 ? MangaWidgetMobile(
                               imageUrl: manga['images']['jpg']['image_url'],
                               status: manga['status'],
-                              score: manga['score'].toDouble(),
-                              rank: manga['rank'],
+                              score: manga['score'] ?? 0,
+                              rank: manga['rank'] ?? 99999,
                               title: manga['title'],
-                              description: manga["synopsis"],
+                              description: manga["synopsis"] ?? "Description not yet available",
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                             )
                                 : MangaWidget(
                               imageUrl: manga['images']['jpg']['image_url'],
                               status: manga['status'],
-                              score: manga['score'].toDouble(),
-                              rank: manga['rank'],
+                              score: manga['score'] ?? 0,
+                              rank: manga['rank'] ?? 99999,
                               title: manga['title'],
-                              description: manga["synopsis"],
+                              description: manga["synopsis"] ?? "Description not yet available",
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                             ),
@@ -449,4 +548,5 @@ class _MangaSearchViewState extends State<MangaSearchView> {
       throw Exception('Failed to load mangas');
     }
   }
+
 }

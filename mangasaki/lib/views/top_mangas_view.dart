@@ -191,7 +191,10 @@ class _TopMangasViewState extends State<TopMangasView> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      _lastPage = data['pagination']['last_visible_page'] ?? 1;
+
+      setState(() {
+        _lastPage = data['pagination']['last_visible_page'] ?? 1;
+      });
       return data['data'];
     } else {
       throw Exception('Failed to load top mangas');
