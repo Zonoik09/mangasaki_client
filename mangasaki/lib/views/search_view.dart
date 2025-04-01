@@ -111,7 +111,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
 
       if (includedGenres.isNotEmpty) url += '&genres=$includedGenres';
       if (excludedGenres.isNotEmpty) url += '&genres_exclude=$excludedGenres';
-      if (orderBy.isNotEmpty) url += '&order_by=$orderBy';
+      if (orderBy != "mal_id") url += '&order_by=$orderBy';
       if (status != "Default") url += '&status=$status';
       if (_currentPage > 1) url += '&page=$_currentPage';
 
