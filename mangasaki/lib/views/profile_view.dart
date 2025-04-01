@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:mangasaki/connection/userStorage.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import '../connection/api_service.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:http/http.dart' as http;
+import '../connection/api_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -18,27 +16,126 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   String? profileImageUrl;
   String? bannerImageUrl;
+  String? nickname; // Guardamos el nickname del usuario
 
   @override
   void initState() {
     super.initState();
-    fetchBannerImage(); // Fetch the banner image when the view initializes
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    final userData = await UserStorage.getUserData();
+    if (userData != null) {
+      setState(() {
+        nickname = userData['resultat']['nickname'] ?? 'User';
+      });
+      fetchBannerImage();
+    }
   }
 
   Future<void> fetchBannerImage() async {
-    final response = await http.get(Uri.parse("https://mangasaki.ieti.site/api/user/getUserBanner"));
+    if (nickname != null) {
+      final response = await http.get(Uri.parse("https://mangasaki.ieti.site/api/user/getUserBanner/$nickname"));
 
-    if (response.statusCode == 200) {
-      setState(() {
-        // Suponemos que la API devuelve la URL de la imagen del banner en el cuerpo.
-        bannerImageUrl = jsonDecode(response.body)['bannerUrl'];
-      });
-    } else {
-      print("Failed to load banner image");
-      setState(() {
-        bannerImageUrl = null; 
-      });
+      // Imprimir el tipo de contenido para depuración
+      print("Response Content-Type: ${response.headers['content-type']}");
+
+      if (response.statusCode == 200) {
+        // Verificamos si la respuesta es una imagen
+        if (response.headers['content-type']?.contains('image') ?? false) {
+          print("Received an image response");
+          
+          // Convertir la respuesta de la imagen en formato base64
+          String base64Image = base64Encode(response.bodyBytes);
+          
+          setState(() {
+            // Asumimos que aquí se puede establecer la URL de la imagen o base64 para mostrarla en la UI
+            bannerImageUrl = "data:image/jpeg;base64,$base64Image";
+          });
+        } else if (response.headers['content-type']?.contains('application/json') ?? false) {
+          // Si la respuesta es JSON, analizarla
+          try {
+            final decodedResponse = jsonDecode(response.body);
+            setState(() {
+              bannerImageUrl = decodedResponse['bannerUrl'];
+            });
+          } catch (e) {
+            print("Error parsing banner image response: $e");
+          }
+        } else {
+          print("Unexpected content type: ${response.headers['content-type']}");
+        }
+      } else {
+        print("Failed to load banner image. Status code: ${response.statusCode}");
+        setState(() {
+          bannerImageUrl = null;
+        });
+      }
     }
+  }
+
+
+
+  Future<void> changeBannerPicture(String nickname, String base64File, BuildContext context) async {
+    final Uri url = Uri.parse("https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': nickname,
+          'base64': base64File,
+        }),
+      );
+
+      print("Change Banner Response: ${response.body}");  // Imprimir respuesta para depuración
+
+      if (response.statusCode == 200) {
+        String responseBody = response.body;
+        if (responseBody.contains("Banner updated successfully")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Banner updated successfully"))
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Unexpected response: $responseBody"))
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update banner. Status: ${response.statusCode}"))
+        );
+      }
+    } catch (e) {
+      print("Error occurred while changing banner: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"))
+      );
+    }
+  }
+
+  Future<void> changeBannerImage() async {
+    String? base64File = await pickFileAndConvertToBase64();
+    if (base64File != null && nickname != null) {
+      await ApiService().changeBannerPicture(nickname!, base64File, context);
+      fetchBannerImage(); // Refrescar el banner
+    } else {
+      print("No se seleccionó ningún archivo.");
+    }
+  }
+
+  Future<String?> pickFileAndConvertToBase64() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+
+    if (result != null && result.files.single.path != null) {
+      File file = File(result.files.single.path!);
+      List<int> fileBytes = await file.readAsBytes();
+      String base64String = base64Encode(fileBytes);
+      return base64String;
+    }
+    return null;
   }
 
   @override
@@ -75,33 +172,67 @@ class _ProfileViewState extends State<ProfileView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Banner
-                  Container(
-                    width: double.infinity,
-                    height: 150, // Altura del banner
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.grey.shade300,
-                    ),
-                    child: bannerImageUrl != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              bannerImageUrl!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 150, // Asegurarse de que la imagen cubra el banner
+                  // Banner con botones
+                  Stack(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.grey.shade300,
+                        ),
+                        child: bannerImageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: bannerImageUrl!.startsWith("data:image/")
+                                    ? Image.memory(base64Decode(bannerImageUrl!.split(",")[1]), fit: BoxFit.cover)
+                                    : Image.network(bannerImageUrl!, fit: BoxFit.cover),
+                              )
+                            : const Center(
+                                child: Text(
+                                  "No Banner Available",
+                                  style: TextStyle(color: Colors.black54, fontSize: 18),
+                                ),
+                              ),
+                      ),
+                      // Botones en la esquina superior derecha
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: changeBannerImage,
+                              child: const Icon(Icons.upload_file, color: Colors.white),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.all(10),
+                                shape: const CircleBorder(),
+                              ),
                             ),
-                          )
-                        : const Center(
-                            child: Text(
-                              "No Banner Available",
-                              style: TextStyle(color: Colors.black54, fontSize: 18),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  bannerImageUrl = null;
+                                });
+                              },
+                              child: const Icon(Icons.delete, color: Colors.white),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                padding: const EdgeInsets.all(10),
+                                shape: const CircleBorder(),
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16), // Espacio entre el banner y el contenido
-                  
+                  const SizedBox(height: 16),
+
+                  // Imagen de perfil y datos
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -110,7 +241,6 @@ class _ProfileViewState extends State<ProfileView> {
                         backgroundColor: Colors.transparent,
                         child: ClipOval(
                           child: Image.network(
-                            // Añadimos el parámetro de marca de tiempo para evitar caché
                             profileImageUrl! + "?${DateTime.now().millisecondsSinceEpoch}",
                             width: 100,
                             height: 100,
@@ -139,13 +269,14 @@ class _ProfileViewState extends State<ProfileView> {
                     ],
                   ),
                   const SizedBox(height: 10),
+                  
+                  // Botón para cambiar la imagen de perfil
                   ElevatedButton.icon(
                     onPressed: () async {
                       String? base64File = await pickFileAndConvertToBase64();
                       if (base64File != null) {
                         await ApiService().changeProfilePicture(nickname, base64File, context);
                         setState(() {
-                          // Aseguramos que la URL de la imagen de perfil se actualice con el parámetro de tiempo
                           profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
                         });
                       } else {
@@ -163,6 +294,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                   const SizedBox(height: 20),
+
                   const Text(
                     "Collections",
                     style: TextStyle(
@@ -204,17 +336,5 @@ class _ProfileViewState extends State<ProfileView> {
         ),
       ),
     );
-  }
-}
-
-Future<String?> pickFileAndConvertToBase64() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-  if (result != null) {
-    File file = File(result.files.single.path!);
-    List<int> fileBytes = await file.readAsBytes();
-    return base64Encode(fileBytes);
-  } else {
-    return null;
   }
 }
