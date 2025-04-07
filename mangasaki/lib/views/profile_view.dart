@@ -75,8 +75,6 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-
-
   Future<void> changeBannerPicture(String nickname, String base64File, BuildContext context) async {
     final Uri url = Uri.parse("https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
 
@@ -329,6 +327,13 @@ class _ProfileViewState extends State<ProfileView> {
                       },
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  
+                  // Canvas para mostrar los rectángulos
+                  CustomPaint(
+                    size: Size(double.infinity, 200),  // Tamaño del canvas
+                    painter: RectanglesPainter(),
+                  ),
                 ],
               ),
             );
@@ -336,5 +341,74 @@ class _ProfileViewState extends State<ProfileView> {
         ),
       ),
     );
+  }
+}
+
+class RectanglesPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..color = Color.fromARGB(255, 60, 111, 150)  // Fondo azul
+      ..style = PaintingStyle.fill;
+
+    Paint borderPaint = Paint()
+      ..color = Colors.white  // Color blanco para los bordes
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;  // Grosor del borde
+
+    double rectWidth = size.width / 3;  // Tres rectángulos por fila
+    double rectHeight = 140;
+    
+    // Lista de nombres y imágenes
+    List<String> names = ['Name 1', 'Name 2', 'Name 3', 'Name 4', 'Name 5'];
+    List<String> imagePaths = [
+      'assets/image1.png', 'assets/image2.png', 'assets/image3.png', 'assets/image4.png', 'assets/image5.png'
+    ];
+
+    // Dibujar rectángulos en columnas
+    for (int i = 0; i < names.length; i++) {
+      double x = (i % 1) * rectWidth;  // Solo una columna por fila
+      double y = (i ~/ 1) * (rectHeight + 10);  // Nueva fila cada rectángulo
+
+      // Crear un rectángulo con bordes redondeados
+      Rect rect = Rect.fromLTWH(x, y, rectWidth, rectHeight);
+      RRect roundedRect = RRect.fromRectAndRadius(rect, Radius.circular(15));
+
+      // Dibujar el rectángulo con borde
+      canvas.drawRRect(roundedRect, paint);
+      canvas.drawRRect(roundedRect, borderPaint);
+
+      // Pintar el texto (nombre) en la parte superior del rectángulo
+      TextPainter textPainter = TextPainter(
+        text: TextSpan(
+          text: names[i],
+          style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(x + (rectWidth - textPainter.width) / 2, y + 10));
+
+      // Pintar la imagen (centrada dentro del rectángulo)
+      // Aquí utilizamos la imagen como un widget, pero en un CustomPainter no se puede utilizar directamente un widget
+      // Para dibujar imágenes debes cargar las imágenes como `ImageProvider` o usar el método `canvas.drawImage`
+      // Aquí simulamos el uso de una imagen centrada
+      Image image = Image.asset(imagePaths[i]);  // Cargar la imagen desde assets
+      double imageWidth = 50;  // Ajusta el tamaño de la imagen
+      double imageHeight = 50;
+
+      // Simulamos que la imagen estaría centrada
+      image.image.resolve(ImageConfiguration()).addListener(
+        ImageStreamListener((ImageInfo image, bool synchronousCall) {
+          canvas.drawImage(image.image, Offset(x + (rectWidth - imageWidth) / 2, y + (rectHeight - imageHeight) / 2), Paint());
+        })
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
