@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../connection/api_service.dart';
+import 'detailsprofile_view.dart';
 
 
 class ProfileView extends StatefulWidget {
@@ -318,48 +319,57 @@ class _ProfileViewState extends State<ProfileView> {
                       childAspectRatio: 0.7,
                     ),
                     itemBuilder: (context, index) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          border: Border.all(color: Colors.white),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // NOMBRE DEL JUGADOR / COLECCIÓN
-                            Text(
-                              "Jugador ${index + 1}",
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                      return InkWell(
+                        onTap: () {
+                          // Aquí puedes navegar a la siguiente pantalla al hacer clic en el rectángulo
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => DetailsProfileView()),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            border: Border.all(color: Colors.white),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // NOMBRE DEL JUGADOR / COLECCIÓN
+                              Text(
+                                "Jugador ${index + 1}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
+                              const SizedBox(height: 8),
 
-                            // IMAGEN
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  'assets/imatge.png',
-                                  fit: BoxFit.cover,
+                              // IMAGEN
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    'assets/imatge.png', // Reemplaza con tu imagen real
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
+                              const SizedBox(height: 8),
 
-                            // TEXTO INFERIOR
-                            const Text(
-                              "Más info",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
+                              // TEXTO INFERIOR
+                              const Text(
+                                "Más info",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
