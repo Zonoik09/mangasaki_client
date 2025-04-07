@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../connection/api_service.dart';
-import 'detailsprofile_view.dart';
+import 'detailscollections_view.dart';
 
 
 class ProfileView extends StatefulWidget {
