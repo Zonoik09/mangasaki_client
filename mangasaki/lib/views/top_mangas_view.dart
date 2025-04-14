@@ -128,6 +128,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               description: manga['synopsis'] ?? 'N/A',
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
+                              type: manga["type"],
                             )
                                 : MangaWidget(
                               title: manga['title'],
@@ -138,6 +139,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               description: manga['synopsis'] ?? 'N/A',
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
+                              type: manga["type"],
                             ),
                           );
                         },

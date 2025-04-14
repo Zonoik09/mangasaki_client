@@ -482,6 +482,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               description: manga["synopsis"] ?? "Description not yet available",
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
+                              type: manga["type"],
                             )
                                 : MangaWidget(
                               imageUrl: manga['images']['jpg']['image_url'],
@@ -492,6 +493,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               description: manga["synopsis"] ?? "Description not yet available",
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
+                              type: manga["type"],
                             ),
                           );
                         },

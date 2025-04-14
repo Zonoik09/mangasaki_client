@@ -11,6 +11,7 @@ class MangaWidget extends StatelessWidget {
   final String description;
   final int chapters;
   final List<String> genres;
+  final String type;
 
   const MangaWidget({
     Key? key,
@@ -22,6 +23,7 @@ class MangaWidget extends StatelessWidget {
     required this.description,
     required this.chapters,
     required this.genres,
+    required this.type,
   }) : super(key: key);
 
   @override
@@ -29,7 +31,10 @@ class MangaWidget extends StatelessWidget {
     String cleanedDescription = description
         .replaceAll(RegExp(r'(\n|\[Written by MAL Rewrite\])'), '')
         .trim();
-
+    String newTitle = title;
+    if (type != "Manga") {
+      newTitle = title+"  ($type)";
+    }
     return GestureDetector(
       onTap: () {
         // Navegar a MangaView cuando se hace clic en el widget
@@ -37,7 +42,7 @@ class MangaWidget extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => MangaView(
-              name: title,
+              name: newTitle,
               description: cleanedDescription,
               status: status,
               ranking: rank,
@@ -73,7 +78,7 @@ class MangaWidget extends StatelessWidget {
                           maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.7,
                         ),
                         child: Text(
-                          title,
+                          newTitle,
                           style: TextStyle(fontSize: cardHeight < 190 ? 15 : 18, fontWeight: FontWeight.bold, color: Colors.amber),
                         ),
                       ),
@@ -249,6 +254,7 @@ class MangaWidgetMobile extends StatelessWidget {
   final String description;
   final int chapters;
   final List<String> genres;
+  final String type;
 
   const MangaWidgetMobile({
     Key? key,
@@ -260,6 +266,7 @@ class MangaWidgetMobile extends StatelessWidget {
     required this.description,
     required this.chapters,
     required this.genres,
+    required this.type,
   }) : super(key: key);
 
   @override
@@ -267,14 +274,17 @@ class MangaWidgetMobile extends StatelessWidget {
     String cleanedDescription = description
         .replaceAll(RegExp(r'(\n|\[Written by MAL Rewrite\])'), '')
         .trim();
-
+    String newTitle = title;
+    if (type != "manga") {
+      newTitle = title+"  ($type)";
+    }
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => MangaView(
-              name: title,
+              name: newTitle,
               description: cleanedDescription,
               status: status,
               ranking: rank,
@@ -324,7 +334,7 @@ class MangaWidgetMobile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      newTitle,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
