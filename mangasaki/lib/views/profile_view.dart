@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../connection/api_service.dart';
+import '../widgets/ItemCollection_widget.dart';
 import 'detailscollections_view.dart';
-
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -38,7 +38,8 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> fetchBannerImage() async {
     if (nickname != null) {
-      final response = await http.get(Uri.parse("https://mangasaki.ieti.site/api/user/getUserBanner/$nickname"));
+      final response = await http.get(Uri.parse(
+          "https://mangasaki.ieti.site/api/user/getUserBanner/$nickname"));
 
       print("Response Content-Type: ${response.headers['content-type']}");
 
@@ -51,7 +52,9 @@ class _ProfileViewState extends State<ProfileView> {
           setState(() {
             bannerImageUrl = "data:image/jpeg;base64,$base64Image";
           });
-        } else if (response.headers['content-type']?.contains('application/json') ?? false) {
+        } else if (response.headers['content-type']
+                ?.contains('application/json') ??
+            false) {
           try {
             final decodedResponse = jsonDecode(response.body);
             setState(() {
@@ -64,7 +67,8 @@ class _ProfileViewState extends State<ProfileView> {
           print("Unexpected content type: ${response.headers['content-type']}");
         }
       } else {
-        print("Failed to load banner image. Status code: ${response.statusCode}");
+        print(
+            "Failed to load banner image. Status code: ${response.statusCode}");
         setState(() {
           bannerImageUrl = null;
         });
@@ -72,8 +76,10 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Future<void> changeBannerPicture(String nickname, String base64File, BuildContext context) async {
-    final Uri url = Uri.parse("https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
+  Future<void> changeBannerPicture(
+      String nickname, String base64File, BuildContext context) async {
+    final Uri url = Uri.parse(
+        "https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
 
     try {
       final response = await http.post(
@@ -91,23 +97,20 @@ class _ProfileViewState extends State<ProfileView> {
         String responseBody = response.body;
         if (responseBody.contains("Banner updated successfully")) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Banner updated successfully"))
-          );
+              SnackBar(content: Text("Banner updated successfully")));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Unexpected response: $responseBody"))
-          );
+              SnackBar(content: Text("Unexpected response: $responseBody")));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update banner. Status: ${response.statusCode}"))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                "Failed to update banner. Status: ${response.statusCode}")));
       }
     } catch (e) {
       print("Error occurred while changing banner: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"))
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -122,7 +125,8 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Future<String?> pickFileAndConvertToBase64() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.image);
 
     if (result != null && result.files.single.path != null) {
       File file = File(result.files.single.path!);
@@ -132,6 +136,34 @@ class _ProfileViewState extends State<ProfileView> {
     }
     return null;
   }
+
+  final List<Map<String, String>> exampleCollections = [
+    {
+      "title": "Shonen Favoritos",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Ej: imagen de Attack on Titan
+    },
+    {
+      "title": "Slice of Life",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Ej: imagen de Clannad
+    },
+    {
+      "title": "Psicológicos",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Death Note
+    },
+    {
+      "title": "Cortos pero Intensos",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Chainsaw Man
+    },
+    {
+      "title": "Deportes",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Haikyuu!!
+    },
+    {
+      "title": "Isekai",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg", // Re:Zero
+    },
+  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,17 +180,20 @@ class _ProfileViewState extends State<ProfileView> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}\nStackTrace: ${snapshot.stackTrace}",
+              return Text(
+                  "Error: ${snapshot.error}\nStackTrace: ${snapshot.stackTrace}",
                   style: const TextStyle(color: Colors.white));
             } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Text("No user information found", style: TextStyle(color: Colors.white));
+              return const Text("No user information found",
+                  style: TextStyle(color: Colors.white));
             }
 
             final userData = snapshot.data!;
             final nickname = userData['resultat']['nickname'] ?? 'User';
             final likes = userData['likes'] ?? 0;
 
-            profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+            profileImageUrl =
+                "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
 
             return Container(
               width: contentWidth,
@@ -180,13 +215,18 @@ class _ProfileViewState extends State<ProfileView> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: bannerImageUrl!.startsWith("data:image/")
-                                    ? Image.memory(base64Decode(bannerImageUrl!.split(",")[1]), fit: BoxFit.cover)
-                                    : Image.network(bannerImageUrl!, fit: BoxFit.cover),
+                                    ? Image.memory(
+                                        base64Decode(
+                                            bannerImageUrl!.split(",")[1]),
+                                        fit: BoxFit.cover)
+                                    : Image.network(bannerImageUrl!,
+                                        fit: BoxFit.cover),
                               )
                             : const Center(
                                 child: Text(
                                   "No Banner Available",
-                                  style: TextStyle(color: Colors.black54, fontSize: 18),
+                                  style: TextStyle(
+                                      color: Colors.black54, fontSize: 18),
                                 ),
                               ),
                       ),
@@ -197,7 +237,8 @@ class _ProfileViewState extends State<ProfileView> {
                           children: [
                             ElevatedButton(
                               onPressed: changeBannerImage,
-                              child: const Icon(Icons.upload_file, color: Colors.white),
+                              child: const Icon(Icons.upload_file,
+                                  color: Colors.white),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 padding: const EdgeInsets.all(10),
@@ -211,7 +252,8 @@ class _ProfileViewState extends State<ProfileView> {
                                   bannerImageUrl = null;
                                 });
                               },
-                              child: const Icon(Icons.delete, color: Colors.white),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 padding: const EdgeInsets.all(10),
@@ -234,7 +276,8 @@ class _ProfileViewState extends State<ProfileView> {
                         backgroundColor: Colors.transparent,
                         child: ClipOval(
                           child: Image.network(
-                            profileImageUrl! + "?${DateTime.now().millisecondsSinceEpoch}",
+                            profileImageUrl! +
+                                "?${DateTime.now().millisecondsSinceEpoch}",
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
@@ -255,7 +298,8 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                           Text(
                             "$likes Likes",
-                            style: const TextStyle(fontSize: 20, color: Colors.white),
+                            style: const TextStyle(
+                                fontSize: 20, color: Colors.white),
                           ),
                         ],
                       ),
@@ -267,112 +311,83 @@ class _ProfileViewState extends State<ProfileView> {
                     onPressed: () async {
                       String? base64File = await pickFileAndConvertToBase64();
                       if (base64File != null) {
-                        await ApiService().changeProfilePicture(nickname, base64File, context);
+                        await ApiService().changeProfilePicture(
+                            nickname, base64File, context);
                         setState(() {
-                          profileImageUrl = "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+                          profileImageUrl =
+                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
                         });
                       } else {
                         print("No se seleccionó ningún archivo.");
                       }
                     },
                     icon: const Icon(Icons.upload_file, color: Colors.white),
-                    label: const Text("Change profile image", style: TextStyle(color: Colors.white)),
+                    label: const Text("Change profile image",
+                        style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 50),
 
                   // CONTENEDOR PERSONALIZADO PARA "Collections"
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 60, 111, 150),
-                      border: Border.all(color: Colors.white),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      "Collections",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Texto "Collections" alineado a la izquierda
+                      const Text(
+                        "Collections",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.left,
                       ),
-                    ),
+
+                      // Línea divisoria
+                      const Divider(
+                        color: Colors.white,  // Color de la línea
+                        thickness: 2.5,        // Grosor de la línea
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 10),
 
-                  // NUEVO GRID DE COLECCIONES CON IMAGENES
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: 10, // Cambiar esto si usas datos reales
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 150,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.7,
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: exampleCollections.length,
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 150,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childAspectRatio: 0.7,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = exampleCollections[index];
+                        return CollectionItemCard(
+                          title: item["title"]!,
+                          imagePath: item["imageUrl"]!,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailsProfileView(
+                                  collectionName: item["title"],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                        onTap: () {
-                          // Aquí puedes navegar a la siguiente pantalla al hacer clic en el rectángulo
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => DetailsProfileView()),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            border: Border.all(color: Colors.white),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // NOMBRE DEL JUGADOR / COLECCIÓN
-                              Text(
-                                "Jugador ${index + 1}",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-
-                              // IMAGEN
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    'assets/imatge.png', // Reemplaza con tu imagen real
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-
-                              // TEXTO INFERIOR
-                              const Text(
-                                "Más info",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
                   ),
                 ],
               ),

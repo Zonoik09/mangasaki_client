@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DetailsProfileView extends StatelessWidget {
-  final String collectionName = "Colección de Juanito";
+  final String? collectionName;
+
   final List<Map<String, dynamic>> userMangas = [
     {
       "title": "One Piece",
@@ -29,13 +30,15 @@ class DetailsProfileView extends StatelessWidget {
     },
   ];
 
+  DetailsProfileView({super.key, required this.collectionName});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 60, 111, 150),
       appBar: AppBar(
         title: Text(
-          collectionName,
+          collectionName!,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -96,4 +99,3 @@ class DetailsProfileView extends StatelessWidget {
     );
   }
 }
-
