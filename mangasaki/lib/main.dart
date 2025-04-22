@@ -14,7 +14,7 @@ void main() async {
 
     WindowOptions windowOptions = const WindowOptions(
       title: 'Mangasaki!',
-      size: Size(1280, 720),
+      size: Size(1280, 800),
       minimumSize: Size(600, 800),
     );
 
