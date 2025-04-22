@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:mangasaki/connection/api_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CameraScreen extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _CameraScreenState extends State<CameraScreen> {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   Future<void>? _initializeControllerFuture;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -35,6 +37,22 @@ class _CameraScreenState extends State<CameraScreen> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DisplayPictureScreen(imagePath: pickedFile.path),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
   }
 
   Future<void> _takePicture() async {
@@ -80,9 +98,21 @@ class _CameraScreenState extends State<CameraScreen> {
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 20),
-              child: FloatingActionButton(
-                child: Icon(Icons.camera),
-                onPressed: _takePicture,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Botón para tomar foto
+                  FloatingActionButton(
+                    child: Icon(Icons.camera),
+                    onPressed: _takePicture,
+                  ),
+                  SizedBox(width: 20),
+                  // Botón para seleccionar imagen de la galería
+                  FloatingActionButton(
+                    child: Icon(Icons.photo),
+                    onPressed: _pickImageFromGallery,
+                  ),
+                ],
               ),
             ),
           ),
@@ -141,7 +171,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   void _sendImageToApi(BuildContext context) async {
-
     setState(() {
       isLoading = true;
     });

@@ -51,6 +51,32 @@ class MangaView extends StatelessWidget {
     );
   }
 
+  Widget GenreWidget(List<String> generos) {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: generos.map((genero) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 60, 111, 150),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: Text(
+            genero,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+
+
   Widget starRating(double rating) {
     int fullStars = rating ~/ 2;
     double fractionalStar = rating - fullStars * 2;
@@ -140,22 +166,32 @@ class MangaView extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.network(imageUrl, width: 100, height: 150, fit: BoxFit.cover),
-                const SizedBox(width: 16),
+                Image.network(
+                  imageUrl,
+                  width: MediaQuery.of(context).size.width < 600 ? 100 : 150,
+                  height: MediaQuery.of(context).size.width < 600 ? 150 : 225,
+                  fit: BoxFit.cover,
+                ),                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         name,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber),
                       ),
                       const SizedBox(height: 8),
-                      statusWidget(status),
-                      const SizedBox(height: 8),
-                      starRating(score),
+                      Row(
+                        children: [
+                          starRating(score),
+                          const SizedBox(width: 8),
+                          statusWidget(status),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       customRatingWidget(ranking),
+                      const SizedBox(height: 8),
+                      GenreWidget(genres),
                     ],
                   ),
                 ),

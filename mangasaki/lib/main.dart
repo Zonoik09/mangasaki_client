@@ -14,7 +14,7 @@ void main() async {
 
     WindowOptions windowOptions = const WindowOptions(
       title: 'Mangasaki!',
-      size: Size(1280, 720),
+      size: Size(1280, 800),
       minimumSize: Size(600, 800),
     );
 
@@ -50,7 +50,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    //return const Scaffold(body: LoginScreen());
-    return Scaffold(body: MainView());
+    return const Scaffold(body: LoginScreen());
+    //return Scaffold(body: MainView());
   }
 }
