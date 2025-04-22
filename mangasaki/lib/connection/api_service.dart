@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:file_picker/file_picker.dart'; // Para seleccionar archivos
 
 import '../views/main_view.dart';
 
@@ -64,13 +65,7 @@ class ApiService {
         showVerificationDialog(context, userId);
         return responseData;
 
-      } else if (response.statusCode == 401){
-        _handleError(response, context);
-        return {};
-      } else if (response.statusCode == 402){
-        _handleError(response, context);
-        return {};
-      }else {
+      } else {
         _handleError(response, context);
         return {};
       }
@@ -131,6 +126,7 @@ class ApiService {
     }
   }
 
+  // Obtener información del usuario
   Future<Map<String, dynamic>> getUserInfo(String nickname) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserInfo/$nickname');
 
@@ -146,6 +142,19 @@ class ApiService {
     }
   }
 
+  // Obtener los mangas más populares
+  Future<List<dynamic>> getTopMangas() async {
+    final response = await http.get(Uri.parse('https://api.jikan.moe/v4/top/manga?limit=24'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['data'];
+    } else {
+      throw Exception('Failed to load top mangas');
+    }
+  }
+
+  // Cambiar imagen de perfil
   Future<Map<String, dynamic>> changeProfilePicture(String username, String image, BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
 
@@ -160,7 +169,7 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        print("Se ha subido la imagen con exito");
+        print("Se ha subido la imagen con éxito");
         return jsonDecode(response.body);
       } else {
         _showSnackBar(context, 'Error uploading the image');
@@ -173,14 +182,58 @@ class ApiService {
     }
   }
 
+  // Cambiar imagen del banner
+  Future<void> changeBannerPicture(String nickname, String base64File, BuildContext context) async {
+    final Uri url = Uri.parse("https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': nickname,
+          'base64': base64File,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Banner updated successfully"))
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update banner"))
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"))
+      );
+    }
+  }
+
+  // Método para seleccionar un archivo y convertirlo a base64
+  Future<String?> pickFileAndConvertToBase64() async {
+    // Abre un cuadro de diálogo para seleccionar el archivo
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      // Lee el archivo seleccionado
+      Uint8List fileBytes = result.files.single.bytes!;
+      // Convierte el archivo en una cadena base64
+      return base64Encode(fileBytes);
+    }
+    return null;
+  }
+
+  // Mostrar el cuadro de verificación
   Future<void> showVerificationDialog(BuildContext context, int userId) async {
-    final TextEditingController _verificationCodeController =
-    TextEditingController();
+    final TextEditingController _verificationCodeController = TextEditingController();
 
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext dialogContext) { // Este es el contexto del diálogo
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Enter Verification Code'),
           content: Column(
@@ -207,12 +260,10 @@ class ApiService {
                   final verifyResponse = await verifyCode(userId, code, context);
 
                   if (verifyResponse.isNotEmpty) {
-                    // Cerrar el diálogo antes de navegar
                     Navigator.of(dialogContext).pop();
 
                     _showSnackPositiveBar(context, 'Successful verification code');
 
-                    // Usar el `context` original para la navegación
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => MainView()),
@@ -233,7 +284,7 @@ class ApiService {
     );
   }
 
-
+  // Métodos de manejo de errores y notificaciones
   void _handleError(http.Response response, BuildContext context) {
     if (response.statusCode == 401) {
       _showSnackBar(context, 'Invalid credentials. Please check your details.');
@@ -301,8 +352,4 @@ class ApiService {
       ),
     );
   }
-
 }
-
-
-
