@@ -206,7 +206,7 @@ class _ProfileViewState extends State<ProfileView> {
                     children: [
                       Container(
                         width: double.infinity,
-                        height: 150,
+                        height: 200,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: Colors.grey.shade300,
@@ -237,28 +237,28 @@ class _ProfileViewState extends State<ProfileView> {
                           children: [
                             ElevatedButton(
                               onPressed: changeBannerImage,
-                              child: const Icon(Icons.upload_file,
-                                  color: Colors.white),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 padding: const EdgeInsets.all(10),
                                 shape: const CircleBorder(),
                               ),
+                              child: const Icon(Icons.upload_file,
+                                  color: Colors.white),
                             ),
                             const SizedBox(width: 8),
                             ElevatedButton(
                               onPressed: () {
                                 setState(() {
-                                  bannerImageUrl = null;
+                                  ApiService().changeBannerPicture(nickname!, '', context);
                                 });
                               },
-                              child:
-                                  const Icon(Icons.delete, color: Colors.white),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 padding: const EdgeInsets.all(10),
                                 shape: const CircleBorder(),
                               ),
+                              child:
+                                  const Icon(Icons.delete, color: Colors.white),
                             ),
                           ],
                         ),
@@ -269,69 +269,111 @@ class _ProfileViewState extends State<ProfileView> {
 
                   // Perfil
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.transparent,
-                        child: ClipOval(
-                          child: Image.network(
-                            profileImageUrl! +
-                                "?${DateTime.now().millisecondsSinceEpoch}",
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // 📸 Perfil + Info
+                      Row(
                         children: [
-                          Text(
-                            nickname,
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.05,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.transparent,
+                            child: ClipOval(
+                              child: Image.network(
+                                "${profileImageUrl!}?${DateTime.now().millisecondsSinceEpoch}",
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                          Text(
-                            "$likes Likes",
-                            style: const TextStyle(
-                                fontSize: 20, color: Colors.white),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                nickname,
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.05,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                "Likes: $likes",
+                                style: const TextStyle(fontSize: 20, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // 🎛️ Botones
+                      Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              String? base64File = await pickFileAndConvertToBase64();
+                              if (base64File != null) {
+                                await ApiService().changeProfilePicture(
+                                    nickname, base64File, context);
+                                setState(() {
+                                  profileImageUrl =
+                                  "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+                                });
+                              } else {
+                                print("No se seleccionó ningún archivo.");
+                              }
+                            },
+                            icon: const Icon(Icons.upload_file, color: Colors.white),
+                            label: const Text("Change Profile Image",
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              // Acción para añadir galería
+                            },
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            label: const Text("New Gallery",
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              await ApiService().changeProfilePicture(nickname, '', context);
+                              setState(() {
+                                profileImageUrl = ""; // o una imagen por defecto si quieres
+                              });
+                            },
+                            icon: const Icon(Icons.delete, color: Colors.white),
+                            label: const Text("Delete Profile Image",
+                                style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      String? base64File = await pickFileAndConvertToBase64();
-                      if (base64File != null) {
-                        await ApiService().changeProfilePicture(
-                            nickname, base64File, context);
-                        setState(() {
-                          profileImageUrl =
-                              "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
-                        });
-                      } else {
-                        print("No se seleccionó ningún archivo.");
-                      }
-                    },
-                    icon: const Icon(Icons.upload_file, color: Colors.white),
-                    label: const Text("Change profile image",
-                        style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 50),
 
@@ -365,7 +407,7 @@ class _ProfileViewState extends State<ProfileView> {
                       padding: const EdgeInsets.all(16),
                       itemCount: exampleCollections.length,
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 150,
+                        maxCrossAxisExtent: 400,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                         childAspectRatio: 0.7,

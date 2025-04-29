@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mangasaki/connection/api_service.dart';
 import 'package:mangasaki/views/profile_view.dart';
 import 'package:mangasaki/views/search_view.dart';
+import 'package:mangasaki/views/social_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
 import 'package:mangasaki/views/login_view.dart';
@@ -190,14 +191,9 @@ class _MainViewState extends State<MainView> {
     final List<Widget> _pages = [
       _principalView(context),
       ProfileView(),
-      Center(
-          child: Text('Social',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
+      SocialView(),
       TopMangasView(),
       MangaSearchView(),
-      Center(
-          child: Text('Themes',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
     ];
     UserStorage.getUserData().then((userData) {
     });
@@ -341,6 +337,13 @@ class _MainViewState extends State<MainView> {
               },
             ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Alto de la línea
+          child: Container(
+            color: Colors.black, // Color de la línea
+            height: 2.0,
+          ),
+        ),
       ),
       body: _pages[_selectedIndex],
     );
