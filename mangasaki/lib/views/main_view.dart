@@ -283,11 +283,6 @@ class _MainViewState extends State<MainView> {
                           title: const Text('Search', style: TextStyle(color: Colors.white)),
                           onTap: () => _onItemTapped(4),
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.color_lens, color: Colors.white),
-                          title: const Text('Themes', style: TextStyle(color: Colors.white)),
-                          onTap: () => _onItemTapped(5),
-                        ),
                       ],
                     ),
                   ),

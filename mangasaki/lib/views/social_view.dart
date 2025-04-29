@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/Friend_widget.dart';
+import '../widgets/manga_widget_Recomendation.dart';
 
 class SocialView extends StatefulWidget {
   @override
@@ -16,6 +17,106 @@ class _SocialViewState extends State<SocialView> {
     {'name': 'Eve', 'image': 'https://i.pravatar.cc/150?img=5', 'online': false},
     {'name': 'Frank', 'image': 'https://i.pravatar.cc/150?img=6', 'online': false},
   ];
+
+  final List<Map<String, dynamic>> recommendations = [
+    {
+      'title': 'One Piece',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
+      'status': 'Publishing',
+      'score': 9.1,
+      'rank': 1,
+      'description': 'Gol D. Roger was known as the Pirate King. The capture and death of Roger by the World Government brought a change throughout the world...',
+      'chapters': 1095,
+      'genres': ['Action', 'Adventure', 'Fantasy'],
+      'type': 'Manga',
+      'nickname': 'Alice',
+    },
+    {
+      'title': 'Solo Leveling',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'status': 'Finished',
+      'score': 8.7,
+      'rank': 23,
+      'description': 'In a world where hunters—human warriors who possess magical abilities—must battle deadly monsters to protect mankind from annihilation...',
+      'chapters': 179,
+      'genres': ['Action', 'Fantasy', 'Supernatural'],
+      'type': 'Manhwa',
+      'nickname': 'Bob',
+    },
+    {
+      'title': 'One Piece',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
+      'status': 'Publishing',
+      'score': 9.1,
+      'rank': 1,
+      'description': 'Gol D. Roger was known as the Pirate King. The capture and death of Roger by the World Government brought a change throughout the world...',
+      'chapters': 1095,
+      'genres': ['Action', 'Adventure', 'Fantasy'],
+      'type': 'Manga',
+      'nickname': 'Alice',
+    },
+    {
+      'title': 'Solo Leveling',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'status': 'Finished',
+      'score': 8.7,
+      'rank': 23,
+      'description': 'In a world where hunters—human warriors who possess magical abilities—must battle deadly monsters to protect mankind from annihilation...',
+      'chapters': 179,
+      'genres': ['Action', 'Fantasy', 'Supernatural'],
+      'type': 'Manhwa',
+      'nickname': 'Bob',
+    },
+    {
+      'title': 'One Piece',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
+      'status': 'Publishing',
+      'score': 9.1,
+      'rank': 1,
+      'description': 'Gol D. Roger was known as the Pirate King. The capture and death of Roger by the World Government brought a change throughout the world...',
+      'chapters': 1095,
+      'genres': ['Action', 'Adventure', 'Fantasy'],
+      'type': 'Manga',
+      'nickname': 'Alice',
+    },
+    {
+      'title': 'Solo Leveling',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'status': 'Finished',
+      'score': 8.7,
+      'rank': 23,
+      'description': 'In a world where hunters—human warriors who possess magical abilities—must battle deadly monsters to protect mankind from annihilation...',
+      'chapters': 179,
+      'genres': ['Action', 'Fantasy', 'Supernatural'],
+      'type': 'Manhwa',
+      'nickname': 'Bob',
+    },
+    {
+      'title': 'One Piece',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
+      'status': 'Publishing',
+      'score': 9.1,
+      'rank': 1,
+      'description': 'Gol D. Roger was known as the Pirate King. The capture and death of Roger by the World Government brought a change throughout the world...',
+      'chapters': 1095,
+      'genres': ['Action', 'Adventure', 'Fantasy'],
+      'type': 'Manga',
+      'nickname': 'Alice',
+    },
+    {
+      'title': 'Solo Leveling',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'status': 'Finished',
+      'score': 8.7,
+      'rank': 23,
+      'description': 'In a world where hunters—human warriors who possess magical abilities—must battle deadly monsters to protect mankind from annihilation...',
+      'chapters': 179,
+      'genres': ['Action', 'Fantasy', 'Supernatural'],
+      'type': 'Manhwa',
+      'nickname': 'Bob',
+    },
+  ];
+
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +157,10 @@ class _SocialViewState extends State<SocialView> {
           SizedBox(height: 20),
 
           // Recuadro de recomendaciones
-// Recuadro de recomendaciones
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 60, 111, 150),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -75,26 +175,46 @@ class _SocialViewState extends State<SocialView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Recomendations',
+                  'Recommendations',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.black,
                   ),
                 ),
                 SizedBox(height: 16),
-
-                // Aquí va tu widget personalizado
-                //MangaWidgetRecomendation(),
+                SizedBox(
+                  height: 320,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: recommendations.map((manga) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: MangaWidgetRecomendation(
+                            title: manga['title'],
+                            imageUrl: manga['imageUrl'],
+                            status: manga['status'],
+                            score: manga['score'],
+                            rank: manga['rank'],
+                            description: manga['description'],
+                            chapters: manga['chapters'],
+                            genres: List<String>.from(manga['genres']),
+                            type: manga['type'],
+                            nickname: manga['nickname'],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
-
           SizedBox(height: 20),
 
           // Sección Friends
-          // FRIENDS SECTION
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
