@@ -146,8 +146,9 @@ class _SocialViewState extends State<SocialView> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search...',
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12),
                   suffixIcon: Icon(Icons.search, color: Colors.grey),
                 ),
               ),
