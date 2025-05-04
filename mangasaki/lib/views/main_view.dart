@@ -9,6 +9,7 @@ import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
 import 'package:mangasaki/views/login_view.dart';
 
+import '../connection/NotificationRepository.dart';
 import '../connection/userStorage.dart';
 import 'camera_screen.dart';
 import 'notification_view.dart';
@@ -319,6 +320,13 @@ class _MainViewState extends State<MainView> {
                 context,
                 MaterialPageRoute(builder: (context) => NotificationView()),
               );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.add_circle, color: Colors.white),
+            onPressed: () {
+              // Llama a la función para mostrar la notificación de prueba
+              NotificationRepository.showTestNotification();
             },
           ),
           if (MediaQuery.of(context).size.width < 600)
