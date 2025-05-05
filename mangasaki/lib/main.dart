@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'connection/NotificationRepository.dart';
+import 'connection/app_data.dart';
 import 'connection/userStorage.dart';
 import 'views/login_view.dart';
 import 'views/main_view.dart';
@@ -35,7 +36,12 @@ void main() async {
     });
   }
 
-  runApp(const MyApp()); // Inicia la aplicación
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AppData(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

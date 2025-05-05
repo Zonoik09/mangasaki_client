@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:file_picker/file_picker.dart'; // Para seleccionar archivos
+import 'package:mangasaki/connection/utils_websockets.dart';
 
 import '../views/main_view.dart';
 
 class ApiService {
+
   // Metodo para iniciar sesión
   Future<Map<String, dynamic>> login(
       String username, String pass, BuildContext context) async {
@@ -351,5 +353,33 @@ class ApiService {
         backgroundColor: Colors.red,
       ),
     );
+  }
+
+  // Obtener información del usuario
+  Future<Map<String, dynamic>> getUsersFriends(String letters) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/search/$letters');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
+    }
+  }
+
+  // Obtener información del usuario
+  Future<Uint8List> getUserImage(String username) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserImage/$username');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes; // Obtenemos los bytes de la imagen
+    } else {
+      throw Exception('Error al obtener la imagen del usuario');
+    }
   }
 }

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../connection/api_service.dart';
+import '../connection/app_data.dart';
 import '../connection/userStorage.dart';
 import 'main_view.dart';
 
@@ -21,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+
+  static String username = "";
 
   bool _isLoginView = true;
   late bool _isMobile;
@@ -203,7 +206,10 @@ class _LoginScreenState extends State<LoginScreen> {
             // Navegar a la pantalla MainView
             try {
               final userInfo = await ApiService().getUserInfo(_usernameController.text);
+              print("Nombre de usuario: $userInfo");
               await UserStorage.saveUserData(userInfo);
+              username = _usernameController.text;
+              final appData = Provider.of<AppData>(context, listen: false);
             } catch (e) {
               print('Error al obtener y guardar la información del usuario: $e');
             }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/Friend_widget.dart';
 import '../widgets/manga_widget_Recomendation.dart';
+import 'addFriend_view.dart';
 
 class SocialView extends StatefulWidget {
   @override
@@ -33,7 +34,7 @@ class _SocialViewState extends State<SocialView> {
     },
     {
       'title': 'Solo Leveling',
-      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
       'status': 'Finished',
       'score': 8.7,
       'rank': 23,
@@ -57,7 +58,7 @@ class _SocialViewState extends State<SocialView> {
     },
     {
       'title': 'Solo Leveling',
-      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
       'status': 'Finished',
       'score': 8.7,
       'rank': 23,
@@ -81,7 +82,7 @@ class _SocialViewState extends State<SocialView> {
     },
     {
       'title': 'Solo Leveling',
-      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
       'status': 'Finished',
       'score': 8.7,
       'rank': 23,
@@ -105,7 +106,7 @@ class _SocialViewState extends State<SocialView> {
     },
     {
       'title': 'Solo Leveling',
-      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/222121.jpg',
+      'imageUrl': 'https://cdn.myanimelist.net/images/manga/3/55539.jpg',
       'status': 'Finished',
       'score': 8.7,
       'rank': 23,
@@ -116,6 +117,20 @@ class _SocialViewState extends State<SocialView> {
       'nickname': 'Bob',
     },
   ];
+
+  final TextEditingController _searchController = TextEditingController();
+
+  void _performSearch() {
+    final letters = _searchController.text.trim();
+    if (letters.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddFriendView(letters: letters),
+        ),
+      );
+    }
+  }
 
 
   @override
@@ -144,12 +159,17 @@ class _SocialViewState extends State<SocialView> {
                 ],
               ),
               child: TextField(
+                controller: _searchController,
+                onSubmitted: (_) => _performSearch(), // "Enter" presionado
                 decoration: InputDecoration(
                   hintText: 'Search...',
                   isDense: true,
                   contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   border: InputBorder.none,
-                  suffixIcon: Icon(Icons.search, color: Colors.grey),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.search, color: Colors.grey),
+                    onPressed: _performSearch, // Clic en el ícono de búsqueda
+                  ),
                 ),
               ),
             ),

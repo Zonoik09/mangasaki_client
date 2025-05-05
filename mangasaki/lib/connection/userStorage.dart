@@ -11,7 +11,6 @@ class UserStorage {
   static Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     String? userData = prefs.getString('userData');
-
     if (userData == null) {
       print("No se encontraron datos guardados.");
       return null;
