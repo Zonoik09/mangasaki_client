@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/Friend_widget.dart';
+import '../widgets/friend_widget.dart';
 import '../widgets/manga_widget_Recomendation.dart';
 
 class SocialView extends StatefulWidget {
