@@ -201,7 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (loginResponse['status'] == 'OK') {
             // Navegar a la pantalla MainView
-
             try {
               final userInfo = await ApiService().getUserInfo(_usernameController.text);
               await UserStorage.saveUserData(userInfo);
@@ -254,7 +253,6 @@ class _LoginScreenState extends State<LoginScreen> {
             } catch (e) {
               print('Error al obtener y guardar la información del usuario: $e');
             }
-
           } else {
             _showErrorSnackbar('Registration error. Please try again.');
           }
@@ -298,7 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLoginFields() {
     return Column(
       children: [
-        _buildTextField(_usernameController, 'USERNAME OR PHONE', Icons.person),
+        _buildTextField(_usernameController, 'USERNAME', Icons.person),
         const SizedBox(height: 15),
         _buildTextField(_passwordController, 'PASSWORD', Icons.lock,
             isPassword: true),
@@ -340,8 +338,10 @@ class _LoginScreenState extends State<LoginScreen> {
           prefixIcon: Icon(icon, color: Colors.white),
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.white),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16), // Centra el texto
         ),
       ),
     );
   }
+
 }
