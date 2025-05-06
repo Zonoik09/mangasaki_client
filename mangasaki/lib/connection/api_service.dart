@@ -383,7 +383,19 @@ class ApiService {
     }
   }
 
-  // Metodo para register
+  // Obtener la foto de la galeria
+  Future<Uint8List> getGalleryImage(int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getGalleryImage/$id');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Error al obtener la imagen del usuario');
+    }
+  }
+
+  // Metodo para crear la galeria
   Future<Map<String, dynamic>> createGallery(String username, String nameGalery) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/create_gallery');
 
@@ -408,7 +420,7 @@ class ApiService {
     }
   }
 
-  // Obtener información del usuario
+  // Obtener las galerias
   Future<Map<String, dynamic>> getGallery(String nickname) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getGallery/$nickname');
 
@@ -454,7 +466,7 @@ class ApiService {
     }
   }
 
-  // Metodo para register
+  // Metodo para borrar gallery
   Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery, BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/delete_gallery');
 
@@ -478,6 +490,32 @@ class ApiService {
       }
     } catch (e) {
       _showSnackBar(context, 'Connection error or invalid data: $e');
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  // Metodo para añadir un manga a la galeria
+  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, String mangaName) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/add_In_Gallery');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+            "nickname": username,
+            "galleryName": nameGalery,
+            "manganame": mangaName
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
       throw Exception('Connection error or invalid data: $e');
     }
   }

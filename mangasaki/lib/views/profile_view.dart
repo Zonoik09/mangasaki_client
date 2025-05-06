@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import '../connection/api_service.dart';
 import '../widgets/ItemCollection_widget.dart';
 import 'detailscollections_view.dart';
+import 'dart:typed_data';
+
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -592,19 +594,31 @@ class _ProfileViewState extends State<ProfileView> {
                                 ),
                                 itemBuilder: (context, index) {
                                   final item = collections[index];
-                                  return CollectionItemCard(
-                                      title: item["name"] ?? 'Sin título',
-                                      imagePath: item["image_url"] ?? '',
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              DetailsProfileView(
-                                            collectionName: item["name"],
-                                          ),
-                                        ),
-                                      );
+                                  return FutureBuilder<Uint8List>(
+                                    future: ApiService().getGalleryImage(item["user_id"]),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return CircularProgressIndicator();
+                                      } else if (snapshot.hasError) {
+                                        return Icon(Icons.error);
+                                      } else if (snapshot.hasData) {
+                                        return CollectionItemCard(
+                                          title: item["name"] ?? 'Sin título',
+                                          imagePath: snapshot.data!,
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => DetailsProfileView(
+                                                  collectionName: item["name"],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return Icon(Icons.error); // Si no hay datos, mostrar un ícono de error
+                                      }
                                     },
                                   );
                                 },
