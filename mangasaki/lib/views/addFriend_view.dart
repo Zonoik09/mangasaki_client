@@ -1,7 +1,12 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/addFriend_widget.dart';
+import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
+import '../connection/app_data.dart';
+import '../connection/utils_websockets.dart';
+import 'login_view.dart';
 
 class AddFriendView extends StatefulWidget {
   final String letters;
@@ -58,6 +63,16 @@ class _AddFriendViewState extends State<AddFriendView> {
     }
   }
 
+  Future<Map<String, dynamic>> getUserInfo(String nickname) async {
+    try {
+      final id = await ApiService().getUserInfo(nickname);
+      return id;
+    } catch (e) {
+      throw Exception("Error al cargar el ID del usuario");
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final List<dynamic> userList = users['data'] ?? [];
@@ -90,9 +105,31 @@ class _AddFriendViewState extends State<AddFriendView> {
                 return AddFriendWidget(
                   username: user['nickname'],
                   image: image, // Pasa la imagen cargada
-                  onAddFriend: () {
+                  onAddFriend: () async {
                     print('Agregar a ${user['nickname']}');
-                  },
+
+                    // Obtener el ID del usuario al que deseas agregar
+                    final targetId = user['id'];
+
+                    final fromId = await getUserInfo(LoginScreen.username);
+
+                    // Crear un mapa con los datos del mensaje
+                    Map<String, dynamic> messageData = {
+                      "type": "friendship_notification",
+                      "from": fromId,
+                      "targetId": targetId,
+                      "message": "Tienes una nueva solicitud de amistad"
+                    };
+
+                    // Convertir el mapa a una cadena JSON
+                    String messageJson = jsonEncode(messageData);
+                    final appData = Provider.of<AppData>(context, listen: false);
+
+                    // Enviar el mensaje JSON a través de WebSocket como una cadena
+                    appData.sendMessage(messageJson);
+
+                  }
+                  ,
                 );
               } else {
                 return Text('No se pudo cargar la imagen');

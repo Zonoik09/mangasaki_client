@@ -14,6 +14,8 @@ class LoginScreen extends StatefulWidget {
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
+
+  static String username = "";
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -23,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  static String username = "";
+
 
   bool _isLoginView = true;
   late bool _isMobile;
@@ -208,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
               final userInfo = await ApiService().getUserInfo(_usernameController.text);
               print("Nombre de usuario: $userInfo");
               await UserStorage.saveUserData(userInfo);
-              username = _usernameController.text;
+              LoginScreen.username = _usernameController.text;
               final appData = Provider.of<AppData>(context, listen: false);
             } catch (e) {
               print('Error al obtener y guardar la información del usuario: $e');
