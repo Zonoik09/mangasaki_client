@@ -6,11 +6,10 @@ import 'package:windows_notification/notification_message.dart';
 import 'package:windows_notification/windows_notification.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 
-// Instanciamos el plugin de notificaciones globalmente
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
 
 class Messaging {
   static late BuildContext openContext; // Se asigna desde main()
@@ -69,13 +68,19 @@ class NotificationRepository {
     playSound: true,
   );
 
+  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
   static Future<void> notificationPlugin() async {
-    // Crear canal (solo Android)
+    await _requestPermissions();
+
+    // Crear canal de notificación en Android
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
+    // Solicitar permisos explícitos en iOS
     if (Platform.isIOS) {
       final bool? permissionGranted = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
@@ -93,12 +98,11 @@ class NotificationRepository {
       }
     }
 
-
-    // Configuración Android
+    // Configuración para Android
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Configuración iOS
+    // Configuración para iOS
     final DarwinInitializationSettings initializationSettingsDarwin =
     DarwinInitializationSettings(
       onDidReceiveLocalNotification: (id, title, body, payload) async {
@@ -120,6 +124,7 @@ class NotificationRepository {
       },
     );
 
+    // Unificar configuración
     final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
@@ -129,7 +134,6 @@ class NotificationRepository {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (details) async {
-        // Aquí debemos usar una pantalla válida
         await Navigator.push(
           Messaging.openContext,
           MaterialPageRoute(
@@ -138,6 +142,27 @@ class NotificationRepository {
         );
       },
     );
+  }
+
+
+  static Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          await Permission.notification.request();
+        }
+      }
+    } else if (Platform.isIOS) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
   }
 
   static Future<void> showTestNotification() async {

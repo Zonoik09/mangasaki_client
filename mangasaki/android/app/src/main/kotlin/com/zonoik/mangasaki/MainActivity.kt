@@ -1,4 +1,4 @@
-package com.example.mangasaki
+package com.zonoik.mangasaki
 
 import io.flutter.embedding.android.FlutterActivity
 
