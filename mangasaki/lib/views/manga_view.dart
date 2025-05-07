@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../connection/api_service.dart';
+import 'login_view.dart';
+
 class MangaView extends StatelessWidget {
   final String name;
   final String description;
@@ -157,7 +160,54 @@ class MangaView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+              onPressed: () async {
+                try {
+                  final galleries = await ApiService().getGallery(LoginScreen.username);
+                  final List<dynamic> galleryList = galleries["resultat"];
+                  final List<String> collectionNames = galleryList.map((g) => g["name"].toString()).toList();
+
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Selecciona una colección'),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: collectionNames.length,
+                            itemBuilder: (context, index) {
+                              final collection = collectionNames[index];
+                              return ListTile(
+                                title: Text(collection),
+                                onTap: () {
+                                  Navigator.of(context).pop(); // Cierra el diálogo
+                                  ApiService().addInGallery(
+                                    LoginScreen.username,
+                                    collection,
+                                    name,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              },
+          ),
+        ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

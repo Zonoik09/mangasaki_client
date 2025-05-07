@@ -1,9 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import '../views/detailscollections_view.dart';
 
 class CollectionItemCard extends StatelessWidget {
   final String title;
-  final String imagePath;
+  final Uint8List imagePath;
   final VoidCallback? onTap;
 
   const CollectionItemCard({
@@ -48,11 +50,11 @@ class CollectionItemCard extends StatelessWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  imagePath,
+                child: Image.memory(
+                  imagePath,  // Usamos Image.memory para mostrar una imagen desde un Uint8List
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
-                )
+                ),
               ),
             ),
             const SizedBox(height: 8),

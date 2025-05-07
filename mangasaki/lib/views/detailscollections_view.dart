@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/manga_widget.dart';
+
 class DetailsProfileView extends StatelessWidget {
   final String? collectionName;
 
@@ -8,26 +10,27 @@ class DetailsProfileView extends StatelessWidget {
       "title": "One Piece",
       "author": "Eiichiro Oda",
       "chapters": 1090,
-      "status": "En publicación",
+      "status": "Publishing",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg",
+      "description": "Un joven con sombrero de paja busca el tesoro legendario.",
+      "score": 9.1,
+      "rank": 1,
+      "genres": ["Adventure", "Action"],
+      "type": "Manga",
     },
     {
       "title": "Naruto",
       "author": "Masashi Kishimoto",
       "chapters": 700,
-      "status": "Finalizado",
+      "status": "Finished",
+      "imageUrl": "https://cdn.myanimelist.net/images/manga/1/105683.jpg",
+      "description": "Un ninja con el sueño de ser Hokage.",
+      "score": 8.5,
+      "rank": 12,
+      "genres": ["Action", "Fantasy"],
+      "type": "Manga",
     },
-    {
-      "title": "Attack on Titan",
-      "author": "Hajime Isayama",
-      "chapters": 139,
-      "status": "Finalizado",
-    },
-    {
-      "title": "Death Note",
-      "author": "Tsugumi Ohba",
-      "chapters": 108,
-      "status": "Finalizado",
-    },
+    // Agrega más si deseas
   ];
 
   DetailsProfileView({super.key, required this.collectionName});
@@ -35,22 +38,23 @@ class DetailsProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 60, 111, 150),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          collectionName!,
+          collectionName ?? "Detalles",
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
+        iconTheme: const IconThemeData(color: Colors.white), // <- Esta línea
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
             color: Colors.white,
             onPressed: () {
-              // Compartir colección
+              // Acción de compartir
             },
           ),
         ],
@@ -60,38 +64,35 @@ class DetailsProfileView extends StatelessWidget {
         itemCount: userMangas.length,
         itemBuilder: (context, index) {
           final manga = userMangas[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[800],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  manga["title"],
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "Autor: ${manga["author"]}",
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
-                ),
-                Text(
-                  "Capítulos: ${manga["chapters"]}",
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
-                ),
-                Text(
-                  "Estado: ${manga["status"]}",
-                  style: const TextStyle(fontSize: 14, color: Colors.white70),
-                ),
-              ],
+          final bool isMobile = MediaQuery.of(context).size.width < 600;
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SizedBox(
+              height: 250, // Limita la altura para evitar errores de layout
+              child: isMobile
+                  ? MangaWidgetMobile(
+                title: manga['title'],
+                imageUrl: manga['imageUrl'],
+                status: manga['status'],
+                score: manga['score'],
+                rank: manga['rank'],
+                description: manga['description'],
+                chapters: manga['chapters'],
+                genres: List<String>.from(manga['genres']),
+                type: manga['type'],
+              )
+                  : MangaWidget(
+                title: manga['title'],
+                imageUrl: manga['imageUrl'],
+                status: manga['status'],
+                score: manga['score'],
+                rank: manga['rank'],
+                description: manga['description'],
+                chapters: manga['chapters'],
+                genres: List<String>.from(manga['genres']),
+                type: manga['type'],
+              ),
             ),
           );
         },

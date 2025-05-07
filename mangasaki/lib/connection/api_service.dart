@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:file_picker/file_picker.dart'; // Para seleccionar archivos
+import 'package:mangasaki/connection/utils_websockets.dart';
 
 import '../views/main_view.dart';
 
 class ApiService {
+
   // Metodo para iniciar sesión
   Future<Map<String, dynamic>> login(
       String username, String pass, BuildContext context) async {
@@ -212,7 +214,7 @@ class ApiService {
     }
   }
 
-  // Método para seleccionar un archivo y convertirlo a base64
+  // Metodo para seleccionar un archivo y convertirlo a base64
   Future<String?> pickFileAndConvertToBase64() async {
     // Abre un cuadro de diálogo para seleccionar el archivo
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -352,4 +354,170 @@ class ApiService {
       ),
     );
   }
+
+  // Obtener información del usuario
+  Future<Map<String, dynamic>> getUsersFriends(String letters) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/search/$letters');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
+    }
+  }
+
+  // Obtener información del usuario
+  Future<Uint8List> getUserImage(String username) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserImage/$username');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes; // Obtenemos los bytes de la imagen
+    } else {
+      throw Exception('Error al obtener la imagen del usuario');
+    }
+  }
+
+  // Obtener la foto de la galeria
+  Future<Uint8List> getGalleryImage(int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getGalleryImage/$id');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Error al obtener la imagen del usuario');
+    }
+  }
+
+  // Metodo para crear la galeria
+  Future<Map<String, dynamic>> createGallery(String username, String nameGalery) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/create_gallery');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'name': nameGalery,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  // Obtener las galerias
+  Future<Map<String, dynamic>> getGallery(String nickname) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getGallery/$nickname');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      print(json.decode(response.body));
+      return json.decode(response.body);
+    } else {
+      throw Exception('No galleries have been created yet.');
+    }
+  }
+
+  // Cambiar imagen de galery
+  Future<Map<String, dynamic>> changeGalleryPicture(String name, String username, String image, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'name': name,
+          'base64': image,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print("Se ha subido la imagen con éxito");
+        return jsonDecode(response.body);
+      } else {
+        _showSnackBar(context, 'Error uploading the image');
+        throw Exception("Error");
+      }
+
+    } catch (e) {
+      _showSnackBar(context, 'Error uploading the image $e');
+      throw Exception('Error verifying the code: $e');
+    }
+  }
+
+  // Metodo para borrar gallery
+  Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/delete_gallery');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'name': nameGalery,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        _showSnackPositiveBar(context, "Collection created successfully");
+        return responseData;
+      } else {
+        _handleError(response, context);
+        return {};
+      }
+    } catch (e) {
+      _showSnackBar(context, 'Connection error or invalid data: $e');
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  // Metodo para añadir un manga a la galeria
+  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, String mangaName) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/add_In_Gallery');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+            "nickname": username,
+            "galleryName": nameGalery,
+            "manganame": mangaName
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
 }

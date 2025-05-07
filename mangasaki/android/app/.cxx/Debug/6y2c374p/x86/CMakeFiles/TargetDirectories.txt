@@ -1,0 +1,2 @@
+C:/Users/jonym/Documents/GitHub/mangasaki/mangasaki_client/mangasaki/android/app/.cxx/Debug/6y2c374p/x86/CMakeFiles/edit_cache.dir
+C:/Users/jonym/Documents/GitHub/mangasaki/mangasaki_client/mangasaki/android/app/.cxx/Debug/6y2c374p/x86/CMakeFiles/rebuild_cache.dir

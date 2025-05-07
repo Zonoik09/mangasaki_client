@@ -1,13 +1,16 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mangasaki/connection/api_service.dart';
 import 'package:mangasaki/views/profile_view.dart';
 import 'package:mangasaki/views/search_view.dart';
+import 'package:mangasaki/views/social_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
 import 'package:mangasaki/views/login_view.dart';
 
+import '../connection/NotificationRepository.dart';
 import '../connection/userStorage.dart';
 import 'camera_screen.dart';
 import 'notification_view.dart';
@@ -190,14 +193,9 @@ class _MainViewState extends State<MainView> {
     final List<Widget> _pages = [
       _principalView(context),
       ProfileView(),
-      Center(
-          child: Text('Social',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
+      SocialView(),
       TopMangasView(),
       MangaSearchView(),
-      Center(
-          child: Text('Themes',
-              style: TextStyle(fontSize: 24, color: Colors.white))),
     ];
     UserStorage.getUserData().then((userData) {
     });
@@ -287,11 +285,6 @@ class _MainViewState extends State<MainView> {
                           title: const Text('Search', style: TextStyle(color: Colors.white)),
                           onTap: () => _onItemTapped(4),
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.color_lens, color: Colors.white),
-                          title: const Text('Themes', style: TextStyle(color: Colors.white)),
-                          onTap: () => _onItemTapped(5),
-                        ),
                       ],
                     ),
                   ),
@@ -330,6 +323,17 @@ class _MainViewState extends State<MainView> {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.add_circle, color: Colors.white),
+            onPressed: () {
+              if (Platform.isAndroid || Platform.isIOS) {
+                NotificationRepository.showTestNotification(); // <- OK porque es static
+              } else if (Platform.isWindows) {
+                NotificationRepository.showMessageStyleNotification(); // <- CORRECTO: solo llama, no lo uses como valor
+              }
+            },
+          ),
+
           if (MediaQuery.of(context).size.width < 600)
             IconButton(
               icon: Icon(Icons.camera_alt, color: Colors.white),
@@ -341,6 +345,13 @@ class _MainViewState extends State<MainView> {
               },
             ),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Alto de la línea
+          child: Container(
+            color: Colors.black, // Color de la línea
+            height: 2.0,
+          ),
+        ),
       ),
       body: _pages[_selectedIndex],
     );
