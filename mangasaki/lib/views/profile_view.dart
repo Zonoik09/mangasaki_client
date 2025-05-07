@@ -86,50 +86,10 @@ class _ProfileViewState extends State<ProfileView> {
           print("Unexpected content type: ${response.headers['content-type']}");
         }
       } else {
-        print(
-            "Failed to load banner image. Status code: ${response.statusCode}");
         setState(() {
           bannerImageUrl = null;
         });
       }
-    }
-  }
-
-  Future<void> changeBannerPicture(
-      String nickname, String base64File, BuildContext context) async {
-    final Uri url = Uri.parse(
-        "https://mangasaki.ieti.site/api/user/changeUserProfileBanner");
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'nickname': nickname,
-          'base64': base64File,
-        }),
-      );
-
-      print("Change Banner Response: ${response.body}");
-
-      if (response.statusCode == 200) {
-        String responseBody = response.body;
-        if (responseBody.contains("Banner updated successfully")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Banner updated successfully")));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Unexpected response: $responseBody")));
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "Failed to update banner. Status: ${response.statusCode}")));
-      }
-    } catch (e) {
-      print("Error occurred while changing banner: $e");
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 
@@ -244,6 +204,7 @@ class _ProfileViewState extends State<ProfileView> {
                                       setState(() {
                                         ApiService().changeBannerPicture(
                                             nickname!, '', context);
+                                        fetchBannerImage();
                                       });
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -605,12 +566,13 @@ class _ProfileViewState extends State<ProfileView> {
                                         return CollectionItemCard(
                                           title: item["name"] ?? 'Sin título',
                                           imagePath: snapshot.data!,
+                                          id: item["id"],
                                           onTap: () {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => DetailsProfileView(
-                                                  collectionName: item["name"],
+                                                  collectionName: item["name"], id: item["id"],
                                                 ),
                                               ),
                                             );

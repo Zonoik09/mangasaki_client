@@ -197,15 +197,10 @@ class ApiService {
           'base64': base64File,
         }),
       );
-
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Banner updated successfully"))
-        );
+        _showSnackPositiveBar(context, "Banner updated successfully");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update banner"))
-        );
+        _showSnackBar(context, "Failed to update banner");
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -328,18 +323,6 @@ class ApiService {
     );
   }
 
-  static final encrypt.Key key =
-  encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
-  static final encrypt.IV iv =
-  encrypt.IV.fromLength(16); // Vector de inicialización
-
-  // Metodo para encriptar la contraseña
-  String _encryptPassword(String password) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    final encrypted = encrypter.encrypt(password, iv: iv);
-    return encrypted.base64;
-  }
-
   // Corregir la función _showErrorSnackbar pasando el context correctamente
   void _showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -438,16 +421,15 @@ class ApiService {
   }
 
   // Cambiar imagen de galery
-  Future<Map<String, dynamic>> changeGalleryPicture(String name, String username, String image, BuildContext context) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
+  Future<Map<String, dynamic>> changeGalleryPicture(int id, String image, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/changeImage');
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nickname': username,
-          'name': name,
+          'id': id,
           'base64': image,
         }),
       );
@@ -519,5 +501,43 @@ class ApiService {
       throw Exception('Connection error or invalid data: $e');
     }
   }
+
+  Future<Map<String, dynamic>> searchManga(String query) async {
+    final Uri url = Uri.parse("https://api.jikan.moe/v4/manga?q=$query");
+
+    try {
+      // Hacemos la solicitud GET a la API de Jikan
+      final response = await http.get(url);
+
+      // Verificamos que la respuesta sea exitosa
+      if (response.statusCode == 200) {
+        // Decodificamos la respuesta JSON
+        final data = json.decode(response.body);
+
+        // Obtenemos el primer manga de la lista
+        final Map<String, dynamic> manga = data['data'][0];
+
+        // Retornamos el mapa con la información relevante para el widget
+        return {
+          "title": manga['title'],
+          "author": manga['authors'][0]['name'] ?? "Desconocido",
+          "chapters": manga['chapters'] ?? 0,
+          "status": manga['status'],
+          "imageUrl": manga['images']['jpg']['image_url'],
+          "description": manga['synopsis'] ?? "Sin descripción",
+          "score": manga['score'] ?? 0.0,
+          "rank": manga['rank'] ?? 0,
+          "genres": List<String>.from(manga['genres'].map((genre) => genre['name'])),
+          "type": manga['type'],
+        };
+      } else {
+        throw Exception('Error al obtener los mangas de la API');
+      }
+    } catch (e) {
+      // Si ocurre un error, lanzamos una excepción con el mensaje de error
+      throw Exception('Error al cargar los mangas: $e');
+    }
+  }
+
 
 }

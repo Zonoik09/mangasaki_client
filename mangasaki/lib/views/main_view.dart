@@ -323,17 +323,6 @@ class _MainViewState extends State<MainView> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.white),
-            onPressed: () {
-              if (Platform.isAndroid || Platform.isIOS) {
-                NotificationRepository.showTestNotification(); // <- OK porque es static
-              } else if (Platform.isWindows) {
-                NotificationRepository.showMessageStyleNotification(); // <- CORRECTO: solo llama, no lo uses como valor
-              }
-            },
-          ),
-
           if (MediaQuery.of(context).size.width < 600)
             IconButton(
               icon: Icon(Icons.camera_alt, color: Colors.white),
@@ -357,3 +346,7 @@ class _MainViewState extends State<MainView> {
     );
   }
 }
+
+//NotificationRepository.showTestNotification();
+//NotificationRepository.showMessageStyleNotification();
+// Esto es para llamar a las notificaciones

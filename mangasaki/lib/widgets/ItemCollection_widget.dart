@@ -7,13 +7,14 @@ class CollectionItemCard extends StatelessWidget {
   final String title;
   final Uint8List imagePath;
   final VoidCallback? onTap;
+  final int id;
 
   const CollectionItemCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.imagePath,
-    this.onTap,
-  }) : super(key: key);
+    this.onTap, required this.id,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class CollectionItemCard extends StatelessWidget {
               () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => DetailsProfileView(collectionName: title,)),
+              MaterialPageRoute(builder: (context) => DetailsProfileView(collectionName: title, id: id,)),
             );
           },
       child: Container(
