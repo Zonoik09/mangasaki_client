@@ -18,6 +18,8 @@ void main() async {
   // Inicializar el entorno de notificaciones locales
   if (Platform.isAndroid || Platform.isIOS) {
     await NotificationRepository.notificationPlugin();
+  } else if (Platform.isWindows) {
+    await NotificationRepository.initWindowsNotifications();
   }
 
   // Código existente para la configuración de la ventana (solo en escritorio)

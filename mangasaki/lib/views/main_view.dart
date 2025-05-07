@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -323,12 +324,16 @@ class _MainViewState extends State<MainView> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.add_circle, color: Colors.white),
+            icon: const Icon(Icons.add_circle, color: Colors.white),
             onPressed: () {
-              // Llama a la función para mostrar la notificación de prueba
-              NotificationRepository.showTestNotification();
+              if (Platform.isAndroid || Platform.isIOS) {
+                NotificationRepository.showTestNotification(); // <- OK porque es static
+              } else if (Platform.isWindows) {
+                NotificationRepository.showMessageStyleNotification(); // <- CORRECTO: solo llama, no lo uses como valor
+              }
             },
           ),
+
           if (MediaQuery.of(context).size.width < 600)
             IconButton(
               icon: Icon(Icons.camera_alt, color: Colors.white),
