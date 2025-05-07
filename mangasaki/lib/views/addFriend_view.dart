@@ -18,7 +18,7 @@ class AddFriendView extends StatefulWidget {
 }
 
 class _AddFriendViewState extends State<AddFriendView> {
-  Map<String, dynamic> users = {}; // Inicializar como un Map vacío
+  Map<String, dynamic> users = {};
   bool isLoading = true;
   Map<String, Uint8List> userImages = {}; // Para almacenar imágenes de cada usuario
 
@@ -33,7 +33,7 @@ class _AddFriendViewState extends State<AddFriendView> {
       final result = await ApiService().getUsersFriends(letters);
       if (!mounted) return;
       setState(() {
-        users = result; // Asignar el Map de usuarios
+        users = result;
         isLoading = false;
       });
     } catch (e) {
@@ -50,7 +50,6 @@ class _AddFriendViewState extends State<AddFriendView> {
     if (userImages.containsKey(nickname)) {
       return userImages[nickname]!;
     }
-
     // Si la imagen no está en el cache, la descargamos
     try {
       final image = await ApiService().getUserImage(nickname);
@@ -80,9 +79,11 @@ class _AddFriendViewState extends State<AddFriendView> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 60, 111, 150),
       appBar: AppBar(
-        title: const Text("Agregar Amigos"),
+        title: const Text("Add friends", style: TextStyle(color: Colors.white)),
         backgroundColor: Color.fromARGB(255, 60, 111, 150),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(

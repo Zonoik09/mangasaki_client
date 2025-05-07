@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/invitation_widget.dart';
+import 'dart:typed_data';
 
-class NotificationView extends StatelessWidget {
-  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99", "Alexiutu", "pablo pablete","eskebere"]; // Lista de usuarios ficticios
+import '../connection/api_service.dart';
 
-  NotificationView({Key? key}) : super(key: key);
+
+class NotificationView extends StatefulWidget {
+  const NotificationView({Key? key}) : super(key: key);
+
+  @override
+  State<NotificationView> createState() => _NotificationViewState();
+}
+
+class _NotificationViewState extends State<NotificationView> {
+  final List<String> friendRequests = ["admin", "Alice123", "Michael99", "Alexiutu", "pablo pablete", "eskebere"];
+  Map<String, Uint8List> userImages = {};
 
   bool _isMobile(BuildContext context) {
     return MediaQuery.of(context).size.width < 600;
@@ -29,66 +39,57 @@ class NotificationView extends StatelessWidget {
       ),
       body: Container(
         color: const Color.fromARGB(255, 60, 111, 150),
-        child: isMobile
-            ? _buildMobileList()
-            : _buildDesktopGrid(), // Cambia entre lista y grid según el dispositivo
+        child: _buildMobileList(),
       ),
     );
   }
 
-  // Versión móvil con `ListView`
   Widget _buildMobileList() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: friendRequests.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        return InvitationWidgetMobile(
-          username: friendRequests[index],
-          onAccept: () {
-            print("${friendRequests[index]} accepted");
-          },
-          onDecline: () {
-            print("${friendRequests[index]} declined");
+        final username = friendRequests[index];
+        return FutureBuilder<Uint8List>(
+          future: getUserImage(username),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return const Text('Error al cargar la imagen');
+            } else if (snapshot.hasData) {
+              return InvitationWidget(
+                username: username,
+                profileImageUrl: snapshot.data!, // Imagen Uint8List
+                onAccept: () {
+                  print("$username accepted");
+                },
+                onDecline: () {
+                  print("$username declined");
+                },
+              );
+            } else {
+              return const Text('No se pudo cargar la imagen');
+            }
           },
         );
       },
     );
   }
 
-  // Versión de escritorio con `GridView` adaptable
-  Widget _buildDesktopGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: friendRequests.length,
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,  
-        crossAxisSpacing: 20,     
-        mainAxisSpacing: 20,      // Espaciado vertical entre las tarjetas
-        childAspectRatio: 1,      // Mantiene proporción cuadrada
-      ),
-      itemBuilder: (context, index) {
-        return _buildFixedSizeCard(friendRequests[index]);
-      },
-    );
-  }
-
-  // Widget para el cuadrado con tamaño fijo
-    Widget _buildFixedSizeCard(String username) {
-      return SizedBox(
-        width: 250, // Ancho fijo
-        height: 400, // Altura fija
-        child: InvitationWidgetDesktop(
-          username: username,
-          profileImageUrl: "https://picsum.photos/200/300?grayscale",
-          onAccept: () {
-            print("$username Accepted");
-          },
-          onDecline: () {
-            print("$username Declined");
-          },
-        ),
-      );
+  Future<Uint8List> getUserImage(String nickname) async {
+    if (userImages.containsKey(nickname)) {
+      return userImages[nickname]!;
     }
-
+    try {
+      final image = await ApiService().getUserImage(nickname);
+      setState(() {
+        userImages[nickname] = image;
+      });
+      return image;
+    } catch (e) {
+      throw Exception("Error al cargar la imagen del usuario");
+    }
+  }
 }

@@ -57,7 +57,7 @@ class AddFriendWidget extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.person_add, color: Colors.green),
             onPressed: onAddFriend,
-            tooltip: 'Agregar amigo',
+            tooltip: 'Add Friends',
           ),
         ],
       ),

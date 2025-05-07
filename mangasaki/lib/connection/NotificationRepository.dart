@@ -24,9 +24,6 @@ class NotificationRepository {
 
   static Future<void> initWindowsNotifications() async {
     _winNotifyPlugin.initNotificationCallBack((s) {
-      print(s.argrument);
-      print(s.userInput);
-      print(s.eventType);
     });
   }
 
@@ -39,17 +36,15 @@ class NotificationRepository {
   }
 
   static Future<void> showMessageStyleNotification() async {
-    const String url =
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sample_User_Icon.png/240px-Sample_User_Icon.png";
+    const String url = "https://preview.redd.it/isagi-profile-pic-v0-ukaxeja4n1mb1.png?width=640&format=png&auto=webp&s=8154b031903da7d79cf3526e7a306b0e7bb0b878";
 
     final imagePath = await getImageBytes(url);
 
     NotificationMessage message = NotificationMessage.fromPluginTemplate(
       "Nuevo mensaje",
-      "Juan te ha enviado un mensaje",
-      "Hola, ¿cómo estás?",
+      "Juan te ha enviado una solicitud de amistad",
+      "Quieres aceptar?",
       image: imagePath,
-      launch: "https://example.com",
     );
 
     _winNotifyPlugin.showNotificationPluginTemplate(message);
