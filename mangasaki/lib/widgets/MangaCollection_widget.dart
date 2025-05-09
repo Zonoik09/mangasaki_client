@@ -241,8 +241,8 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
                       imageUrl,
-                      width: 90,
-                      height: 120,
+                      width: 100,
+                      height: 150,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -273,7 +273,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
                     Text(
                       cleanedDescription,
                       style: const TextStyle(fontSize: 12, color: Colors.white),
-                      maxLines: 3,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),

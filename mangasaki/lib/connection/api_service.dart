@@ -502,6 +502,34 @@ class ApiService {
     }
   }
 
+  // Metodo para borrar gallery
+  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/remove_From_Gallery');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'nickname': username,
+          'name': nameGalery,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        _showSnackPositiveBar(context, "Collection created successfully");
+        return responseData;
+      } else {
+        _handleError(response, context);
+        return {};
+      }
+    } catch (e) {
+      _showSnackBar(context, 'Connection error or invalid data: $e');
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> searchManga(String query) async {
     final Uri url = Uri.parse("https://api.jikan.moe/v4/manga?q=$query");
 

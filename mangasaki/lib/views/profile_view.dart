@@ -533,59 +533,60 @@ class _ProfileViewState extends State<ProfileView> {
                         const Divider(color: Colors.white, thickness: 2.5),
                         const SizedBox(height: 10),
 
-                        // Grid de colecciones
-                        collections.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'No hay colecciones disponibles.',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              )
-                            : GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                padding: const EdgeInsets.all(16),
-                                itemCount: collections.length,
-                                gridDelegate:
-                                    const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 400,
-                                  mainAxisSpacing: 10,
-                                  crossAxisSpacing: 10,
-                                  childAspectRatio: 0.7,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final item = collections[index];
-                                  return FutureBuilder<Uint8List>(
-                                    future: ApiService().getGalleryImage(item["user_id"]),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return CircularProgressIndicator();
-                                      } else if (snapshot.hasError) {
-                                        return Icon(Icons.error);
-                                      } else if (snapshot.hasData) {
-                                        return CollectionItemCard(
-                                          title: item["name"] ?? 'Sin título',
-                                          imagePath: snapshot.data!,
-                                          id: item["id"],
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => DetailsProfileView(
-                                                  collectionName: item["name"], id: item["id"],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      } else {
-                                        return Icon(Icons.error); // Si no hay datos, mostrar un ícono de error
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
-                      ],
+                  // Grid de colecciones
+                  collections.isEmpty
+                      ? const Center(
+                    child: Text(
+                      'No hay colecciones disponibles.',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                      : GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: collections.length,
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 400,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.7,
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = collections[index];
+
+                      // Usamos un FutureBuilder para cargar la imagen específica de cada colección
+                      return FutureBuilder<Uint8List>(
+                        future: ApiService().getGalleryImage(item["id"]), // Aquí pasamos el user_id único
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return const Icon(Icons.error);
+                          } else if (snapshot.hasData) {
+                            return CollectionItemCard(
+                              title: item["name"] ?? 'Sin título',
+                              imagePath: snapshot.data!, // Aquí asignamos la imagen cargada
+                              id: item["id"],
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailsProfileView(
+                                      collectionName: item["name"], id: item["id"],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return const Icon(Icons.error); // Si no hay datos, mostrar un ícono de error
+                          }
+                        },
+                      );
+                    },
+                  ),
+                  ],
                     ),
                   ),
                 );

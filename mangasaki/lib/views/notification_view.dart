@@ -13,7 +13,7 @@ class NotificationView extends StatefulWidget {
 }
 
 class _NotificationViewState extends State<NotificationView> {
-  final List<String> friendRequests = ["admin", "Alice123", "Michael99", "Alexiutu", "pablo pablete", "eskebere"];
+  final List<String> friendRequests = ["admin", "client", "Michael99", "Alexiutu", "pablo pablete", "eskebere"];
   Map<String, Uint8List> userImages = {};
 
   bool _isMobile(BuildContext context) {

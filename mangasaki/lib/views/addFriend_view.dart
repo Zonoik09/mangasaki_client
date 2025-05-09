@@ -80,10 +80,21 @@ class _AddFriendViewState extends State<AddFriendView> {
       backgroundColor: const Color.fromARGB(255, 60, 111, 150),
       appBar: AppBar(
         title: const Text("Add friends", style: TextStyle(color: Colors.white)),
-        backgroundColor: Color.fromARGB(255, 60, 111, 150),
+        backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            tooltip: 'Refrescar',
+            onPressed: () {
+              setState(() {
+                isLoading = true;
+              });
+              fetchUsers(widget.letters); // Vuelve a cargar los usuarios
+            },
+          ),
+        ],
       ),
-
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -110,16 +121,16 @@ class _AddFriendViewState extends State<AddFriendView> {
                     print('Agregar a ${user['nickname']}');
 
                     // Obtener el ID del usuario al que deseas agregar
-                    final targetId = user['id'];
+                    final targetUsername = user['nickname'];
 
-                    final fromId = await getUserInfo(LoginScreen.username);
+                    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                    final fromId = usuario["resultat"]["id"];
 
                     // Crear un mapa con los datos del mensaje
                     Map<String, dynamic> messageData = {
-                      "type": "friendship_notification",
-                      "from": fromId,
-                      "targetId": targetId,
-                      "message": "Tienes una nueva solicitud de amistad"
+                      "type": "friend_request_notification",
+                      "sender_user_id": fromId,
+                      "receiver_username": targetUsername,
                     };
 
                     // Convertir el mapa a una cadena JSON

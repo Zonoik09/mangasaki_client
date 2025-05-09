@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:typed_data';
+
 
 
 
@@ -34,20 +36,26 @@ class NotificationRepository {
     return file.path;
   }
 
-  static Future<void> showMessageStyleNotification() async {
-    const String url = "https://preview.redd.it/isagi-profile-pic-v0-ukaxeja4n1mb1.png?width=640&format=png&auto=webp&s=8154b031903da7d79cf3526e7a306b0e7bb0b878";
+  static Future<void> showMessageStyleNotification(String mensaje, Future<Uint8List> imageFuture) async {
+    final tempDir = await getTemporaryDirectory();
+    final filePath = '${tempDir.path}/notificacion_imagen.png';
+    final file = File(filePath);
 
-    final imagePath = await getImageBytes(url);
+    final imageBytes = await imageFuture;
+
+    await file.writeAsBytes(imageBytes);
 
     NotificationMessage message = NotificationMessage.fromPluginTemplate(
-      "Nuevo mensaje",
-      "Juan te ha enviado una solicitud de amistad",
-      "Quieres aceptar?",
-      image: imagePath,
+      "New Message",
+      "New Message",
+      mensaje,
+      image: filePath,
     );
 
     _winNotifyPlugin.showNotificationPluginTemplate(message);
   }
+
+
 
   static void showTextOnlyNotification() {
     NotificationMessage message = NotificationMessage.fromPluginTemplate(
@@ -165,7 +173,7 @@ class NotificationRepository {
     }
   }
 
-  static Future<void> showTestNotification() async {
+  static Future<void> showTestNotification(String mensaje) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'channel_id',
       'Channel Title',
@@ -173,7 +181,7 @@ class NotificationRepository {
       importance: Importance.high,
       color: Colors.blue,
       playSound: true,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/splash_logo',
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -189,10 +197,9 @@ class NotificationRepository {
 
     await flutterLocalNotificationsPlugin.show(
       0, // ID de la notificación
-      'Test Notification', // Título
-      'This is a test notification!', // Mensaje
+      'New Message', // Título
+      mensaje, // Mensaje
       platformDetails,
-      payload: 'Test Payload', // Información adicional que puede ser útil para la navegación
     );
   }
 

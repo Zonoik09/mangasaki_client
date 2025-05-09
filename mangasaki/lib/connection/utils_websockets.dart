@@ -4,6 +4,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:mangasaki/connection/userStorage.dart';
 import 'package:mangasaki/views/login_view.dart';
 
+import 'NotificationRepository.dart';
+import 'api_service.dart';
+
 enum ConnectionStatus { disconnected, disconnecting, connecting, connected }
 
 class WebSocketsHandler {
@@ -85,6 +88,27 @@ class WebSocketsHandler {
             print("No se encontró el nombre de usuario.");
           }
         }
+        if (data["type"] == "notification") {
+          print(data);
+          if (data["subtype"] == "friend") {
+            // notificacion aceptada la request
+          }
+          if (data["subtype"] == "friend_request") {
+            NotificationRepository.showTestNotification(data["data"]["message"]);
+            Future<Uint8List> image = ApiService().getUserImage(data["data"]["sender_nickname"]);
+            NotificationRepository.showMessageStyleNotification(data["data"]["message"],image);
+          }
+          if (data["subtype"] == "like") {
+            // notificacion de like
+          }
+          if (data["subtype"] == "recommendation") {
+
+          }
+          if (data["detail"] == "notificationSent") {
+
+          }
+        }
+
       }
     } catch (e) {
       if (kDebugMode) {
