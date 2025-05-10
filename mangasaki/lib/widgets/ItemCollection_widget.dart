@@ -28,8 +28,8 @@ class CollectionItemCard extends StatelessWidget {
           },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.transparent,
-          border: Border.all(color: Colors.white),
+          color: Color.fromARGB(255, 60, 111, 150),
+          border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(8),

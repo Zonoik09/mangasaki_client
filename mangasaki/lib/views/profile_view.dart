@@ -9,7 +9,6 @@ import '../widgets/ItemCollection_widget.dart';
 import 'detailscollections_view.dart';
 import 'dart:typed_data';
 
-
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
 
@@ -37,7 +36,7 @@ class _ProfileViewState extends State<ProfileView> {
         nickname = userData['resultat']['nickname'] ?? 'User';
       });
       fetchBannerImage();
-      fetchCollections(); // Agrega esta línea
+      fetchCollections();
     }
   }
 
@@ -47,9 +46,7 @@ class _ProfileViewState extends State<ProfileView> {
       if (galleryData['resultat'] != null) {
         setState(() {
           collections =
-          List<Map<String, dynamic>>.from(galleryData['resultat']);
-          print("Colecciones cargadas: $collections");  // <-- DEBUG
-
+              List<Map<String, dynamic>>.from(galleryData['resultat']);
         });
       }
     }
@@ -59,15 +56,9 @@ class _ProfileViewState extends State<ProfileView> {
     if (nickname != null) {
       final response = await http.get(Uri.parse(
           "https://mangasaki.ieti.site/api/user/getUserBanner/$nickname"));
-
-      print("Response Content-Type: ${response.headers['content-type']}");
-
       if (response.statusCode == 200) {
         if (response.headers['content-type']?.contains('image') ?? false) {
-          print("Received an image response");
-
           String base64Image = base64Encode(response.bodyBytes);
-
           setState(() {
             bannerImageUrl = "data:image/jpeg;base64,$base64Image";
           });
@@ -82,8 +73,6 @@ class _ProfileViewState extends State<ProfileView> {
           } catch (e) {
             print("Error parsing banner image response: $e");
           }
-        } else {
-          print("Unexpected content type: ${response.headers['content-type']}");
         }
       } else {
         setState(() {
@@ -98,20 +87,16 @@ class _ProfileViewState extends State<ProfileView> {
     if (base64File != null && nickname != null) {
       await ApiService().changeBannerPicture(nickname!, base64File, context);
       fetchBannerImage();
-    } else {
-      print("No se seleccionó ningún archivo.");
     }
   }
 
   Future<String?> pickFileAndConvertToBase64() async {
     FilePickerResult? result =
         await FilePicker.platform.pickFiles(type: FileType.image);
-
     if (result != null && result.files.single.path != null) {
       File file = File(result.files.single.path!);
       List<int> fileBytes = await file.readAsBytes();
-      String base64String = base64Encode(fileBytes);
-      return base64String;
+      return base64Encode(fileBytes);
     }
     return null;
   }
@@ -120,12 +105,13 @@ class _ProfileViewState extends State<ProfileView> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     bool isDesktop = screenWidth > 800;
-    double contentWidth = isDesktop ? screenWidth * 0.6 : screenWidth;
 
     return Scaffold(
-        backgroundColor: const Color.fromARGB(255, 60, 111, 150),
+        backgroundColor: Colors.grey[200],
         body: Center(
-          child: FutureBuilder<Map<String, dynamic>?>(
+          child: SizedBox(
+            width: isDesktop ? MediaQuery.of(context).size.width * 0.6 : MediaQuery.of(context).size.width * 1,
+            child: FutureBuilder<Map<String, dynamic>?>(
               future: UserStorage.getUserData(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -146,451 +132,332 @@ class _ProfileViewState extends State<ProfileView> {
                     "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
 
                 return SingleChildScrollView(
-                  child: Container(
-                    width: contentWidth,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Banner
-                        Stack(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // === Profile Section ===
+                      const Text(
+                        "Profile",
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 8)
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: double.infinity,
-                              height: isDesktop ? 200 : 120,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey.shade300,
-                              ),
-                              child: bannerImageUrl != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: bannerImageUrl!
-                                              .startsWith("data:image/")
-                                          ? Image.memory(
-                                              base64Decode(bannerImageUrl!
-                                                  .split(",")[1]),
-                                              fit: BoxFit.cover)
-                                          : Image.network(bannerImageUrl!,
-                                              fit: BoxFit.cover),
-                                    )
-                                  : const Center(
-                                      child: Text(
-                                        "No Banner Available",
-                                        style: TextStyle(
-                                            color: Colors.black54,
-                                            fontSize: 18),
+                            // Banner
+                            Stack(
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  height: isDesktop ? 200 : 120,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  child: bannerImageUrl != null
+                                      ? ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: bannerImageUrl!
+                                                  .startsWith("data:image/")
+                                              ? Image.memory(
+                                                  base64Decode(bannerImageUrl!
+                                                      .split(",")[1]),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Image.network(bannerImageUrl!,
+                                                  fit: BoxFit.cover),
+                                        )
+                                      : const Center(
+                                          child: Text("No Banner Available")),
+                                ),
+                                Positioned(
+                                  top: 10,
+                                  right: 10,
+                                  child: Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: changeBannerImage,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          shape: const CircleBorder(),
+                                          padding: const EdgeInsets.all(10),
+                                        ),
+                                        child: const Icon(Icons.upload_file,
+                                            color: Colors.white),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          ApiService().changeBannerPicture(
+                                              nickname, '', context);
+                                          fetchBannerImage();
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          shape: const CircleBorder(),
+                                          padding: const EdgeInsets.all(10),
+                                        ),
+                                        child: const Icon(Icons.delete,
+                                            color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            // Perfil info
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.transparent,
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      "$profileImageUrl?${DateTime.now().millisecondsSinceEpoch}",
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(nickname,
+                                          style: const TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold)),
+                                      Text("Likes: $likes",
+                                          style: const TextStyle(fontSize: 18)),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        String? base64File =
+                                            await pickFileAndConvertToBase64();
+                                        if (base64File != null) {
+                                          await ApiService()
+                                              .changeProfilePicture(nickname,
+                                                  base64File, context);
+                                          setState(() {
+                                            profileImageUrl =
+                                                "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(Icons.upload_file,
+                                          color: Colors.white),
+                                      label: const Text("Change profile picture",
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
                                       ),
                                     ),
-                            ),
-                            Positioned(
-                              top: 10,
-                              right: 10,
-                              child: Row(
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: changeBannerImage,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      padding: const EdgeInsets.all(10),
-                                      shape: const CircleBorder(),
+                                    const SizedBox(height: 8),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        await ApiService().changeProfilePicture(
+                                            nickname, '', context);
+                                        setState(() {
+                                          profileImageUrl = "";
+                                        });
+                                      },
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.white),
+                                      label: const Text("Delete profile picture",
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10)),
+                                      ),
                                     ),
-                                    child: const Icon(Icons.upload_file,
-                                        color: Colors.white),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        ApiService().changeBannerPicture(
-                                            nickname!, '', context);
-                                        fetchBannerImage();
-                                      });
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      padding: const EdgeInsets.all(10),
-                                      shape: const CircleBorder(),
-                                    ),
-                                    child: const Icon(Icons.delete,
-                                        color: Colors.white),
-                                  ),
-                                ],
-                              ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                      ),
 
-                        // Perfil
-                        isDesktop
-                            ? Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  // Perfil + Info
-                                  Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 50,
-                                        backgroundColor: Colors.transparent,
-                                        child: ClipOval(
-                                          child: Image.network(
-                                            "${profileImageUrl!}?${DateTime.now().millisecondsSinceEpoch}",
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            nickname,
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.05,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Likes: $likes",
-                                            style: const TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  // Botones desktop
-                                  Column(
-                                    children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () async {
-                                          String? base64File =
-                                              await pickFileAndConvertToBase64();
-                                          if (base64File != null) {
-                                            await ApiService()
-                                                .changeProfilePicture(nickname,
-                                                    base64File, context);
-                                            setState(() {
-                                              profileImageUrl =
-                                                  "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
-                                            });
-                                          }
-                                        },
-                                        icon: const Icon(Icons.upload_file,
-                                            color: Colors.white),
-                                        label: const Text(
-                                            "Change Profile Image",
-                                            style:
-                                                TextStyle(color: Colors.white)),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.blue,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      ElevatedButton.icon(
-                                        onPressed: () async {
-                                          await ApiService()
-                                              .changeProfilePicture(
-                                                  nickname, '', context);
-                                          setState(() {
-                                            profileImageUrl = "";
-                                          });
-                                        },
-                                        icon: const Icon(Icons.delete,
-                                            color: Colors.white),
-                                        label: const Text(
-                                            "Delete Profile Image",
-                                            style:
-                                                TextStyle(color: Colors.white)),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Column(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 50,
-                                            backgroundColor: Colors.transparent,
-                                            child: ClipOval(
-                                              child: Image.network(
-                                                "${profileImageUrl!}?${DateTime.now().millisecondsSinceEpoch}",
-                                                width: 100,
-                                                height: 100,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Row(
-                                            children: [
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue[700],
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black26,
-                                                      blurRadius: 4,
-                                                      offset: Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: IconButton(
-                                                  icon: Icon(Icons.upload_file,
-                                                      color: Colors.white,
-                                                      size: 18),
-                                                  onPressed: () async {
-                                                    String? base64File =
-                                                        await pickFileAndConvertToBase64();
-                                                    if (base64File != null) {
-                                                      await ApiService()
-                                                          .changeProfilePicture(
-                                                              nickname,
-                                                              base64File,
-                                                              context);
-                                                      setState(() {
-                                                        profileImageUrl =
-                                                            "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
-                                                      });
-                                                    }
-                                                  },
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red[600],
-                                                  shape: BoxShape.circle,
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black26,
-                                                      blurRadius: 4,
-                                                      offset: Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: IconButton(
-                                                  icon: Icon(Icons.delete,
-                                                      color: Colors.white,
-                                                      size: 18),
-                                                  onPressed: () async {
-                                                    await ApiService()
-                                                        .changeProfilePicture(
-                                                            nickname,
-                                                            '',
-                                                            context);
-                                                    setState(() {
-                                                      profileImageUrl = "";
-                                                    });
-                                                  },
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            nickname,
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.05,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Likes: $likes",
-                                            style: const TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                      const SizedBox(height: 40),
 
-                        const SizedBox(height: 50),
-
-                        // Título de Collections y botón +
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // === Collections Section ===
+                      const Text(
+                        "Collections",
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 8)
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Collections",
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.add,
-                                    size: 18, color: Colors.black),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      String collectionName = '';
-                                      bool isButtonEnabled = false;
-                                      return StatefulBuilder(
-                                        builder: (context, setState) {
-                                          return AlertDialog(
-                                            title: const Text('New Collection'),
-                                            content: TextField(
-                                              onChanged: (value) {
-                                                collectionName = value;
-                                                setState(() {
-                                                  isButtonEnabled =
-                                                      value.trim().isNotEmpty;
-                                                });
-                                              },
-                                              decoration: const InputDecoration(
-                                                hintText:
-                                                    "Enter collection name",
-                                              ),
-                                            ),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                child: const Text('Cancel'),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
+                            // Header + botón
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text("Your Collections",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w600)),
+                                IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () {
+                                    String collectionName = '';
+                                    bool isButtonEnabled = false;
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return StatefulBuilder(
+                                          builder: (context, setState) {
+                                            return AlertDialog(
+                                              title:
+                                                  const Text('New Collection'),
+                                              content: TextField(
+                                                onChanged: (value) {
+                                                  collectionName = value;
+                                                  setState(() {
+                                                    isButtonEnabled =
+                                                        value.trim().isNotEmpty;
+                                                  });
                                                 },
+                                                decoration: const InputDecoration(
+                                                    hintText:
+                                                        "Enter collection name"),
                                               ),
-                                              TextButton(
-                                                onPressed: isButtonEnabled
-                                                    ? () async {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                        await ApiService()
-                                                            .createGallery(
-                                                                nickname,
-                                                                collectionName);
-                                                        fetchCollections();
-                                                      }
-                                                    : null,
-                                                child: const Text('Accept'),
-                                              ),
-                                            ],
-                                          );
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(),
+                                                  child: const Text('Cancel'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: isButtonEnabled
+                                                      ? () async {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          await ApiService()
+                                                              .createGallery(
+                                                                  nickname,
+                                                                  collectionName);
+                                                          fetchCollections();
+                                                        }
+                                                      : null,
+                                                  child: const Text('Accept'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+                            const SizedBox(height: 10),
+
+                            // Grid
+                            collections.isEmpty
+                                ? const Center(
+                                    child:
+                                        Text('No hay colecciones disponibles.'))
+                                : GridView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: collections.length,
+                                    gridDelegate:
+                                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: 400,
+                                      mainAxisSpacing: 10,
+                                      crossAxisSpacing: 10,
+                                      childAspectRatio: 0.7,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final item = collections[index];
+                                      return FutureBuilder<Uint8List>(
+                                        future: ApiService()
+                                            .getGalleryImage(item["id"]),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const CircularProgressIndicator();
+                                          } else if (snapshot.hasError) {
+                                            return const Icon(Icons.error);
+                                          } else if (snapshot.hasData) {
+                                            return CollectionItemCard(
+                                              title:
+                                                  item["name"] ?? 'No Title',
+                                              imagePath: snapshot.data!,
+                                              id: item["id"],
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        DetailsProfileView(
+                                                      collectionName:
+                                                          item["name"],
+                                                      id: item["id"],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          } else {
+                                            return const Icon(Icons.error);
+                                          }
                                         },
                                       );
                                     },
-                                  );
-                                },
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ),
+                                  ),
                           ],
                         ),
-                        const Divider(color: Colors.white, thickness: 2.5),
-                        const SizedBox(height: 10),
-
-                  // Grid de colecciones
-                  collections.isEmpty
-                      ? const Center(
-                    child: Text(
-                      'No hay colecciones disponibles.',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  )
-                      : GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    itemCount: collections.length,
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 400,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.7,
-                    ),
-                    itemBuilder: (context, index) {
-                      final item = collections[index];
-
-                      // Usamos un FutureBuilder para cargar la imagen específica de cada colección
-                      return FutureBuilder<Uint8List>(
-                        future: ApiService().getGalleryImage(item["id"]), // Aquí pasamos el user_id único
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return const Icon(Icons.error);
-                          } else if (snapshot.hasData) {
-                            return CollectionItemCard(
-                              title: item["name"] ?? 'Sin título',
-                              imagePath: snapshot.data!, // Aquí asignamos la imagen cargada
-                              id: item["id"],
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DetailsProfileView(
-                                      collectionName: item["name"], id: item["id"],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          } else {
-                            return const Icon(Icons.error); // Si no hay datos, mostrar un ícono de error
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
-              }),
-        ));
+              },
+            ),
+          ),
+        )
+    );
   }
 }

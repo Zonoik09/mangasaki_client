@@ -51,6 +51,7 @@ class _TopMangasViewState extends State<TopMangasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Top Mangas",
           style: TextStyle(

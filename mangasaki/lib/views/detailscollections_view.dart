@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:mangasaki/views/profile_view.dart';
 import '../connection/api_service.dart';
 import '../widgets/MangaCollection_widget.dart';
 import 'dart:typed_data';
 
+import 'main_view.dart';
+
 class DetailsProfileView extends StatefulWidget {
-  final String? collectionName;
+  final String collectionName;
   final int id;
 
   DetailsProfileView({super.key, required this.collectionName, required this.id});
@@ -73,7 +76,16 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
         backgroundColor: headerColor,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MainView(selectedIndex: 1)),
+            );
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -274,7 +286,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Column(
                       children: mangas.map((manga) {
-                        print(manga);
                         return SizedBox(
                           height: 250,
                           child: isMobile
@@ -289,7 +300,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             genres: List<String>.from(manga['genres'] ?? []),
                             type: manga['type'],
                             id: manga["id"],
-
+                            galleryName: widget.collectionName,
                           )
                               : MangaCollectionWidget(
                             title: manga['title'],
@@ -302,7 +313,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             genres: List<String>.from(manga['genres'] ?? []),
                             type: manga['type'],
                             id: manga["id"],
-
+                            galleryName: widget.collectionName,
                           ),
                         );
                       }).toList(),

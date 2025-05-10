@@ -223,7 +223,6 @@ class _SocialViewState extends State<SocialView> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: recommendations.map((manga) {
-                        print(manga);
                         return Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: MangaWidgetRecomendation(

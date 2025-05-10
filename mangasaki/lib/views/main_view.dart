@@ -16,20 +16,29 @@ import 'camera_screen.dart';
 import 'notification_view.dart';
 
 class MainView extends StatefulWidget {
-  const MainView({super.key});
+  final int selectedIndex;
+
+  const MainView({Key? key, this.selectedIndex = 0}) : super(key: key);
 
   @override
   _MainViewState createState() => _MainViewState();
 }
 
+
 class _MainViewState extends State<MainView> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   late bool _isMobile;
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.selectedIndex;
   }
 
   Widget _principalView(BuildContext context) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Si es necesario para la navegación
+import 'package:mangasaki/views/login_view.dart';
 import 'package:mangasaki/views/manga_view.dart';
+
+import '../connection/api_service.dart';
 
 class MangaCollectionWidget extends StatelessWidget {
   final String title;
@@ -13,6 +16,8 @@ class MangaCollectionWidget extends StatelessWidget {
   final List<String> genres;
   final String type;
   final int id;
+  final String galleryName;
+
 
   const MangaCollectionWidget({
     super.key,
@@ -26,6 +31,7 @@ class MangaCollectionWidget extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.id,
+    required this.galleryName
   });
 
   @override
@@ -101,7 +107,7 @@ class MangaCollectionWidget extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.close, color: Colors.white),
                   onPressed: () {
-                    print("hola");
+                    ApiService().removeMangaGallery(LoginScreen.username, galleryName, id,context);
                   },
                 ),
               ],
@@ -186,6 +192,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
   final List<String> genres;
   final String type;
   final int id;
+  final String galleryName;
 
   const MangaCollectionWidgetMobile({
     super.key,
@@ -199,6 +206,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.id,
+    required this.galleryName,
   });
 
   @override
@@ -292,7 +300,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {
-                  print("hola");
+                  ApiService().removeMangaGallery(LoginScreen.username, galleryName, id,context);
                 },
               ),
             ],

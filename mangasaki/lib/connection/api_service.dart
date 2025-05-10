@@ -503,22 +503,23 @@ class ApiService {
   }
 
   // Metodo para borrar gallery
-  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, BuildContext context) async {
+  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, int mangaid ,BuildContext context) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/remove_From_Gallery');
 
     try {
-      final response = await http.post(
+      final response = await http.delete(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nickname': username,
-          'name': nameGalery,
+          "nickname": username,
+          "galleryName": nameGalery,
+          "mangaid": mangaid
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        _showSnackPositiveBar(context, "Collection created successfully");
+        _showSnackPositiveBar(context, "Manga was successfully removed from $nameGalery.");
         return responseData;
       } else {
         _handleError(response, context);
