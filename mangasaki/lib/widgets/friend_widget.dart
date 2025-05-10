@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../connection/api_service.dart';
+
 class friendWidget extends StatelessWidget {
   final String username;
   final String image;
@@ -10,6 +12,7 @@ class friendWidget extends StatelessWidget {
     required this.username,
     required this.image,
     required this.online,
+
   }) : super(key: key);
 
   @override
@@ -66,9 +69,39 @@ class friendWidget extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.close, color: Colors.redAccent),
             onPressed: () {
-              // Acción para eliminar
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Remove Friend'),
+                    content: Text('Are you sure you want to remove $username as a friend?'),
+                    actions: [
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Cierra el diálogo
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Remove'),
+                        onPressed: () async {
+                          Navigator.of(context).pop(); // Cierra el diálogo
+                          try {
+                            final result = await ApiService().deleteFriendship(1);
+                            print('Friend removed: $result');
+                          } catch (e) {
+                            print('Error: $e');
+                            // Muestra error si es necesario
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
+
         ],
       ),
     );

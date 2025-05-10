@@ -10,6 +10,7 @@ class MangaNotificationView extends StatelessWidget {
   final List<String> genres;
   final String imageUrl;
   final int chapters;
+  final int id;
 
   const MangaNotificationView({
     Key? key,
@@ -21,6 +22,7 @@ class MangaNotificationView extends StatelessWidget {
     required this.genres,
     required this.imageUrl,
     required this.chapters,
+    required this.id,
   }) : super(key: key);
 
   @override
@@ -50,7 +52,7 @@ class MangaNotificationView extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MangaView(name: name, description: description, status: status, ranking: ranking, score: score , genres: genres, chapters: 30,imageUrl: imageUrl,)),
+                    MaterialPageRoute(builder: (context) => MangaView(name: name, description: description, status: status, ranking: ranking, score: score , genres: genres, chapters: 30,imageUrl: imageUrl,id: id,)),
                   );
                 },
                 child: const Text("Ver Manga"),

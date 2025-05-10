@@ -483,6 +483,8 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
+
                             )
                                 : MangaWidget(
                               imageUrl: manga['images']['jpg']['image_url'],
@@ -494,6 +496,8 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
+
                             ),
                           );
                         },

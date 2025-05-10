@@ -13,6 +13,7 @@ class MangaWidgetRecomendation extends StatelessWidget {
   final List<String> genres;
   final String type;
   final String nickname;
+  final int id;
 
   const MangaWidgetRecomendation({
     Key? key,
@@ -26,6 +27,7 @@ class MangaWidgetRecomendation extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.nickname,
+    required this.id,
   }) : super(key: key);
 
   @override
@@ -49,6 +51,7 @@ class MangaWidgetRecomendation extends StatelessWidget {
               genres: genres,
               chapters: chapters,
               imageUrl: imageUrl,
+              id: id,
             ),
           ),
         );

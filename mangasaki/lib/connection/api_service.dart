@@ -340,7 +340,7 @@ class ApiService {
 
   // Obtener información del usuario
   Future<Map<String, dynamic>> getUsersFriends(String letters) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/search/$letters');
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUsersByCombination/$letters');
 
     final response = await http.get(
       url,
@@ -477,7 +477,7 @@ class ApiService {
   }
 
   // Metodo para añadir un manga a la galeria
-  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, String mangaName) async {
+  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, int mangaId) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/add_In_Gallery');
 
     try {
@@ -487,7 +487,7 @@ class ApiService {
         body: jsonEncode({
             "nickname": username,
             "galleryName": nameGalery,
-            "manganame": mangaName
+            "mangaid": mangaId
         }),
       );
 
@@ -530,8 +530,8 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> searchManga(String query) async {
-    final Uri url = Uri.parse("https://api.jikan.moe/v4/manga?q=$query");
+  Future<Map<String, dynamic>> searchManga(int query) async {
+    final Uri url = Uri.parse("https://api.jikan.moe/v4/manga/$query");
 
     try {
       // Hacemos la solicitud GET a la API de Jikan
@@ -543,7 +543,7 @@ class ApiService {
         final data = json.decode(response.body);
 
         // Obtenemos el primer manga de la lista
-        final Map<String, dynamic> manga = data['data'][0];
+        final Map<String, dynamic> manga = data['data'];
 
         // Retornamos el mapa con la información relevante para el widget
         return {
@@ -557,6 +557,7 @@ class ApiService {
           "rank": manga['rank'] ?? 0,
           "genres": List<String>.from(manga['genres'].map((genre) => genre['name'])),
           "type": manga['type'],
+          "id": manga["mal_id"],
         };
       } else {
         throw Exception('Error al obtener los mangas de la API');
@@ -564,6 +565,73 @@ class ApiService {
     } catch (e) {
       // Si ocurre un error, lanzamos una excepción con el mensaje de error
       throw Exception('Error al cargar los mangas: $e');
+    }
+  }
+
+  // Obtener las notificaciones
+  Future<Map<String, dynamic>> getNotifications(int userId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUserNotifications/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      //print(json.decode(response.body));
+      return json.decode(response.body);
+    } else {
+      throw Exception('No galleries have been created yet.');
+    }
+  }
+
+  // declinar friend request
+  Future<Map<String, dynamic>> declineFriendRequest(int notificationId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/declineFriendRequest/$notificationId');
+
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+    int code = response.statusCode;
+    if (response.statusCode == 200) {
+      print(json.decode(response.body));
+      return json.decode(response.body);
+    } else {
+      throw Exception('No es posible eliminar la solicitud: $code');
+    }
+  }
+
+  // Borrar amistad
+  Future<Map<String, dynamic>> deleteFriendship(int friendshipId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/deleteFriendship/$friendshipId');
+
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      print(json.decode(response.body));
+      return json.decode(response.body);
+    } else {
+      throw Exception('No galleries have been created yet.');
+    }
+  }
+
+  // Obtener información de los mangas de las galerias
+  Future<Map<String, dynamic>> getMangaGallery(int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getMangasGallery/$id');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
     }
   }
 

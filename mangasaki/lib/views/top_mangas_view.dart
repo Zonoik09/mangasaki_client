@@ -129,6 +129,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
                             )
                                 : MangaWidget(
                               title: manga['title'],
@@ -140,6 +141,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
                             ),
                           );
                         },

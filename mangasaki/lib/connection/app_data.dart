@@ -48,7 +48,6 @@ class AppData extends ChangeNotifier {
   void _onWebSocketMessage(String message) {
     try {
       var data = jsonDecode(message);
-      print(data);
     } catch (e) {
       if (kDebugMode) {
         print("Error processant missatge WebSocket: $e");

@@ -31,6 +31,7 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Adventure', 'Fantasy'],
       'type': 'Manga',
       'nickname': 'Alice',
+      'id': 1
     },
     {
       'title': 'Solo Leveling',
@@ -43,6 +44,8 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Fantasy', 'Supernatural'],
       'type': 'Manhwa',
       'nickname': 'Bob',
+      'id': 1
+
     },
     {
       'title': 'One Piece',
@@ -55,6 +58,8 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Adventure', 'Fantasy'],
       'type': 'Manga',
       'nickname': 'Alice',
+      'id': 1
+
     },
     {
       'title': 'Solo Leveling',
@@ -67,6 +72,8 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Fantasy', 'Supernatural'],
       'type': 'Manhwa',
       'nickname': 'Bob',
+      'id': 1
+
     },
     {
       'title': 'One Piece',
@@ -79,6 +86,8 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Adventure', 'Fantasy'],
       'type': 'Manga',
       'nickname': 'Alice',
+      'id': 1
+
     },
     {
       'title': 'Solo Leveling',
@@ -91,6 +100,8 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Fantasy', 'Supernatural'],
       'type': 'Manhwa',
       'nickname': 'Bob',
+      'id': 1
+
     },
     {
       'title': 'One Piece',
@@ -103,6 +114,7 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Adventure', 'Fantasy'],
       'type': 'Manga',
       'nickname': 'Alice',
+      'id': 1
     },
     {
       'title': 'Solo Leveling',
@@ -115,6 +127,7 @@ class _SocialViewState extends State<SocialView> {
       'genres': ['Action', 'Fantasy', 'Supernatural'],
       'type': 'Manhwa',
       'nickname': 'Bob',
+      'id': 1
     },
   ];
 
@@ -160,7 +173,7 @@ class _SocialViewState extends State<SocialView> {
               ),
               child: TextField(
                 controller: _searchController,
-                onSubmitted: (_) => _performSearch(), // "Enter" presionado
+                onSubmitted: (_) => _performSearch(),
                 decoration: InputDecoration(
                   hintText: 'Search...',
                   isDense: true,
@@ -168,7 +181,7 @@ class _SocialViewState extends State<SocialView> {
                   border: InputBorder.none,
                   suffixIcon: IconButton(
                     icon: Icon(Icons.search, color: Colors.grey),
-                    onPressed: _performSearch, // Clic en el ícono de búsqueda
+                    onPressed: _performSearch,
                   ),
                 ),
               ),
@@ -210,6 +223,7 @@ class _SocialViewState extends State<SocialView> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: recommendations.map((manga) {
+                        print(manga);
                         return Padding(
                           padding: const EdgeInsets.only(right: 12),
                           child: MangaWidgetRecomendation(
@@ -223,6 +237,7 @@ class _SocialViewState extends State<SocialView> {
                             genres: List<String>.from(manga['genres']),
                             type: manga['type'],
                             nickname: manga['nickname'],
+                            id: manga["id"],
                           ),
                         );
                       }).toList(),

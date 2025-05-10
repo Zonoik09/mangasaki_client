@@ -80,6 +80,7 @@ class _SimpleMangaWidgetState extends State<SimpleMangaWidget> {
                   .toList(),
               chapters: mangaData!['chapters'] ?? -1,
               imageUrl: widget.imageUrl,
+              id: widget.id,
             ),
       ),
     );

@@ -12,6 +12,7 @@ class MangaCollectionWidget extends StatelessWidget {
   final int chapters;
   final List<String> genres;
   final String type;
+  final int id;
 
   const MangaCollectionWidget({
     super.key,
@@ -24,6 +25,7 @@ class MangaCollectionWidget extends StatelessWidget {
     required this.chapters,
     required this.genres,
     required this.type,
+    required this.id,
   });
 
   @override
@@ -50,6 +52,7 @@ class MangaCollectionWidget extends StatelessWidget {
               genres: genres,
               chapters: chapters ?? -1,
               imageUrl: imageUrl,
+              id: id,
             ),
           ),
         );
@@ -182,6 +185,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
   final int chapters;
   final List<String> genres;
   final String type;
+  final int id;
 
   const MangaCollectionWidgetMobile({
     super.key,
@@ -194,6 +198,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
     required this.chapters,
     required this.genres,
     required this.type,
+    required this.id,
   });
 
   @override
@@ -219,6 +224,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
               genres: genres,
               chapters: chapters,
               imageUrl: imageUrl,
+              id: id,
             ),
           ),
         );

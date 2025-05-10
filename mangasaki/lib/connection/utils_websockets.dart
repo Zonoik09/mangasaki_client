@@ -121,9 +121,7 @@ class WebSocketsHandler {
 
 
   void sendMessage(String message) {
-    print("Mensaje sendMessage");
     if (connectionStatus == ConnectionStatus.connected) {
-      print("Mensaje sendMessage1");
       _socketClient!.sink.add(message);
     }
   }

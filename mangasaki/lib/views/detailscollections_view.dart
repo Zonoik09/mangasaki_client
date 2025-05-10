@@ -25,13 +25,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
 
   final Color headerColor = const Color.fromARGB(255, 60, 111, 150);
 
-  final List<String> mangaList = [
-    "Naruto",
-    "One Piece",
-    "Attack on Titan",
-    "Demon Slayer",
-    "My Hero Academia"
-  ]; // Lista de mangas (puedes expandirla en el futuro)
+  final List<int> mangaList = [];
 
   @override
   void initState() {
@@ -46,23 +40,30 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
     List<Map<String, dynamic>> mangasData = [];
     int index = 0;
 
-    // Recorremos la lista de mangas en pares
-    while (index < mangaList.length) {
-      // Tomamos dos mangas a la vez (si hay más de dos)
-      List<String> currentBatch = mangaList.sublist(index, (index + 2) <= mangaList.length ? index + 2 : mangaList.length);
+    Map<String, dynamic> mangaList = await ApiService().getMangaGallery(widget.id);
+    List resultat = mangaList['resultat'] ?? [];
 
-      // Llamamos a la API para obtener los mangas de la lista actual
-      for (String mangaName in currentBatch) {
-        var manga = await ApiService().searchManga(mangaName);
-        mangasData.add(manga); // Agregar el manga a la lista
+    List<int> mangaIds = resultat
+        .map<int>((item) => item['manga_id'] as int)
+        .toList();
+
+    while (index < mangaIds.length) {
+      List<int> currentBatch = mangaIds.sublist(index,
+          (index + 3 <= mangaIds.length) ? index + 3 : mangaIds.length);
+
+      for (int mangaid in currentBatch) {
+        var manga = await ApiService().searchManga(mangaid);
+        mangasData.add(manga);
       }
 
-      index += 2; // Incrementamos en 2 para cargar los siguientes mangas
-      await Future.delayed(const Duration(seconds: 1)); // Esperamos 1 segundo antes de la siguiente carga
+      index += 3;
+      await Future.delayed(const Duration(seconds: 1));
     }
 
     return mangasData;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +274,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Column(
                       children: mangas.map((manga) {
+                        print(manga);
                         return SizedBox(
                           height: 250,
                           child: isMobile
@@ -284,8 +286,10 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             rank: manga['rank'],
                             description: manga['description'],
                             chapters: manga['chapters'],
-                            genres: List<String>.from(manga['genres']),
+                            genres: List<String>.from(manga['genres'] ?? []),
                             type: manga['type'],
+                            id: manga["id"],
+
                           )
                               : MangaCollectionWidget(
                             title: manga['title'],
@@ -295,8 +299,10 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             rank: manga['rank'],
                             description: manga['description'],
                             chapters: manga['chapters'],
-                            genres: List<String>.from(manga['genres']),
+                            genres: List<String>.from(manga['genres'] ?? []),
                             type: manga['type'],
+                            id: manga["id"],
+
                           ),
                         );
                       }).toList(),

@@ -12,6 +12,8 @@ class MangaView extends StatelessWidget {
   final List<String> genres;
   final int chapters;
   final String imageUrl;
+  final int id;
+
 
   const MangaView({
     Key? key,
@@ -23,6 +25,7 @@ class MangaView extends StatelessWidget {
     required this.genres,
     required this.chapters,
     required this.imageUrl,
+    required this.id,
   }) : super(key: key);
 
   Widget statusWidget(String status) {
@@ -188,7 +191,7 @@ class MangaView extends StatelessWidget {
                                   ApiService().addInGallery(
                                     LoginScreen.username,
                                     collection,
-                                    name,
+                                    id,
                                   );
                                 },
                               );
