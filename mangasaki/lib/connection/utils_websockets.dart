@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:mangasaki/connection/userStorage.dart';
@@ -94,9 +95,13 @@ class WebSocketsHandler {
             // notificacion aceptada la request
           }
           if (data["subtype"] == "friend_request") {
-            NotificationRepository.showTestNotification(data["data"]["message"]);
-            Future<Uint8List> image = ApiService().getUserImage(data["data"]["sender_nickname"]);
-            NotificationRepository.showMessageStyleNotification(data["data"]["message"],image);
+            if (Platform.isWindows || Platform.isLinux) {
+              Future<Uint8List> image = ApiService().getUserImage(data["data"]["sender_nickname"]);
+              NotificationRepository.showMessageStyleNotification(data["data"]["message"],image);
+            } else {
+              NotificationRepository.showTestNotification(data["data"]["message"]);
+            }
+
           }
           if (data["subtype"] == "like") {
             // notificacion de like

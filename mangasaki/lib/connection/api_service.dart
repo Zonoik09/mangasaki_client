@@ -567,7 +567,7 @@ class ApiService {
   }
 
   // Obtener las notificaciones
-  Future<Map<String, dynamic>> getNotifications(int userId) async {
+  Future<Map<String, dynamic>> getNotifications(int? userId) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUserNotifications/$userId');
 
     final response = await http.get(

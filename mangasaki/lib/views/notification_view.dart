@@ -1,23 +1,29 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/invitation_widget.dart';
+import 'package:provider/provider.dart';
 
 import '../connection/api_service.dart';
+import '../connection/app_data.dart';
+import 'login_view.dart';
 
 class NotificationView extends StatefulWidget {
-  const NotificationView({Key? key}) : super(key: key);
+  final int? userId;
+
+  const NotificationView({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<NotificationView> createState() => _NotificationViewState();
 }
 
+
 class _NotificationViewState extends State<NotificationView> {
-  List<Map<String, dynamic>> friendRequests = []; // Guardamos el objeto completo de la notificación
+  List<Map<String, dynamic>> friendRequests = [];
   Map<String, Uint8List> userImages = {};
   Timer? _timer;
-  final int userId = 1;
 
   @override
   void initState() {
@@ -25,6 +31,8 @@ class _NotificationViewState extends State<NotificationView> {
     _loadNotifications();
     _timer = Timer.periodic(const Duration(seconds: 10), (_) => _loadNotifications());
   }
+
+
 
   @override
   void dispose() {
@@ -35,7 +43,7 @@ class _NotificationViewState extends State<NotificationView> {
   Future<void> _loadNotifications() async {
     try {
       // Obtener las notificaciones
-      final notifications = await ApiService().getNotifications(userId);
+      final notifications = await ApiService().getNotifications(widget.userId);
 
       // Acceder a la lista 'data' que contiene las notificaciones
       final List<dynamic> data = notifications['data'];
@@ -93,6 +101,58 @@ class _NotificationViewState extends State<NotificationView> {
     );
   }
 
+  void _showAcceptDialog(int notificationId, String username) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Friendship'),
+          content: Text('Do you want to accept the friend request from $username?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Llamar a la API para aceptar la solicitud
+                  // Obtener el ID del usuario al que deseas agregar
+                  final targetUsername = username;
+
+                  final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                  final fromId = usuario["resultat"]["id"];
+
+                  // Crear un mapa con los datos del mensaje
+                  Map<String, dynamic> messageData = {
+                    "type": "friend_notification",
+                    "sender_user_id": fromId,
+                    "receiver_username": targetUsername,
+                  };
+
+                  // Convertir el mapa a una cadena JSON
+                  String messageJson = jsonEncode(messageData);
+                  final appData = Provider.of<AppData>(context, listen: false);
+
+                  // Enviar el mensaje JSON a través de WebSocket como una cadena
+                  appData.sendMessage(messageJson);
+
+                setState(() {
+                  // Eliminar la solicitud aceptada de la lista
+                  friendRequests.removeWhere((notif) => notif['id'] == notificationId);
+                });
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Accept'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,7 +203,7 @@ class _NotificationViewState extends State<NotificationView> {
                 username: username,
                 profileImageUrl: snapshot.data!,
                 onAccept: () {
-                  print("$username accepted");
+                  _showAcceptDialog(notificationId, username);
                 },
                 onDecline: () {
                   _showDeclineDialog(notificationId, username);

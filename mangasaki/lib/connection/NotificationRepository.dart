@@ -195,10 +195,13 @@ class NotificationRepository {
       iOS: iosDetails,
     );
 
+    int notificationId = DateTime.now().millisecondsSinceEpoch;
+
+
     await flutterLocalNotificationsPlugin.show(
-      0, // ID de la notificación
-      'New Message', // Título
-      mensaje, // Mensaje
+      notificationId,
+      'Mangasaki',
+      mensaje,
       platformDetails,
     );
   }

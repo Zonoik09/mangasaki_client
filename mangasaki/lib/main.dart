@@ -23,7 +23,7 @@ void main() async {
   }
 
   // Código existente para la configuración de la ventana (solo en escritorio)
-  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+  if (Platform.isWindows || Platform.isLinux) {
     await windowManager.ensureInitialized();
 
     WindowOptions windowOptions = const WindowOptions(

@@ -118,8 +118,6 @@ class _AddFriendViewState extends State<AddFriendView> {
                   username: user['nickname'],
                   image: image, // Pasa la imagen cargada
                   onAddFriend: () async {
-                    print('Agregar a ${user['nickname']}');
-
                     // Obtener el ID del usuario al que deseas agregar
                     final targetUsername = user['nickname'];
 
@@ -140,8 +138,7 @@ class _AddFriendViewState extends State<AddFriendView> {
                     // Enviar el mensaje JSON a través de WebSocket como una cadena
                     appData.sendMessage(messageJson);
 
-                  }
-                  ,
+                  },
                 );
               } else {
                 return Text('No se pudo cargar la imagen');

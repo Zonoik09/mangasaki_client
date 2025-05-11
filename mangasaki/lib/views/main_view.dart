@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -28,6 +29,17 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   late int _selectedIndex;
   late bool _isMobile;
+  List<Map<String, dynamic>> friendRequests = [];
+  int pendingNotifications = 0;
+  Timer? _timer;
+  int? userId;
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancela el Timer cuando el widget se elimina
+    super.dispose();
+  }
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -35,10 +47,29 @@ class _MainViewState extends State<MainView> {
     });
   }
 
+  Future<void> _loadNotifications() async {
+    try {
+      final userData = await UserStorage.getUserData();
+      userId = userData?['resultat']['id'];
+      final notifications = await ApiService().getNotifications(userId);
+      final List<dynamic> data = notifications['data'];
+
+      setState(() {
+        friendRequests = List<Map<String, dynamic>>.from(data);
+        pendingNotifications = data.length;
+      });
+    } catch (e) {
+      print("Error al cargar notificaciones: $e");
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.selectedIndex;
+    _loadNotifications();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _loadNotifications());
   }
 
   Widget _principalView(BuildContext context) {
@@ -323,14 +354,45 @@ class _MainViewState extends State<MainView> {
         backgroundColor: Color.fromARGB(255, 60, 111, 150),
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationView()),
-              );
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  if (userId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NotificationView(userId: userId!)),
+                    );
+                  }
+                },
+              ),
+              if (pendingNotifications > 0)
+                Positioned(
+                  right: _isMobile ? 8:4,
+                  top: _isMobile ? 8:3,
+                  child: Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      pendingNotifications.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
           ),
           if (MediaQuery.of(context).size.width < 600)
             IconButton(
