@@ -17,7 +17,7 @@ class MangaCollectionWidget extends StatelessWidget {
   final String type;
   final int id;
   final String galleryName;
-
+  final Function refreshMangaList; // Agregamos esta función
 
   const MangaCollectionWidget({
     super.key,
@@ -31,7 +31,8 @@ class MangaCollectionWidget extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.id,
-    required this.galleryName
+    required this.galleryName,
+    required this.refreshMangaList,
   });
 
   @override
@@ -41,7 +42,7 @@ class MangaCollectionWidget extends StatelessWidget {
         .trim();
     String newTitle = title;
     if (type != "Manga") {
-      newTitle = title+"  ($type)";
+      newTitle = "$title  ($type)";
     }
     return GestureDetector(
       onTap: () {
@@ -107,7 +108,8 @@ class MangaCollectionWidget extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.close, color: Colors.white),
                   onPressed: () {
-                    ApiService().removeMangaGallery(LoginScreen.username, galleryName, id,context);
+                    ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
+                    refreshMangaList();
                   },
                 ),
               ],
@@ -193,6 +195,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
   final String type;
   final int id;
   final String galleryName;
+  final Function refreshMangaList;
 
   const MangaCollectionWidgetMobile({
     super.key,
@@ -207,6 +210,7 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
     required this.type,
     required this.id,
     required this.galleryName,
+    required this.refreshMangaList,
   });
 
   @override
@@ -300,8 +304,9 @@ class MangaCollectionWidgetMobile extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {
-                  ApiService().removeMangaGallery(LoginScreen.username, galleryName, id,context);
-                },
+                  ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
+                  refreshMangaList();
+                  },
               ),
             ],
           ),

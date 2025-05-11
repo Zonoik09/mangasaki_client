@@ -14,7 +14,6 @@ class MangaView extends StatelessWidget {
   final String imageUrl;
   final int id;
 
-
   const MangaView({
     Key? key,
     required this.name,
@@ -81,37 +80,42 @@ class MangaView extends StatelessWidget {
     );
   }
 
-
-
   Widget starRating(double rating) {
     int fullStars = rating ~/ 2;
     double fractionalStar = rating - fullStars * 2;
     int emptyStars = 5 - fullStars - (fractionalStar >= 1 ? 1 : 0);
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ...List.generate(fullStars, (index) {
-          return Icon(
-            Icons.star,
-            color: Colors.yellow,
-            size: 20.0,
-          );
-        }),
-        if (fractionalStar >= 1)
-          Icon(
-            Icons.star_half,
-            color: Colors.yellow,
-            size: 20.0,
-          ),
-        ...List.generate(emptyStars, (index) {
-          return Icon(
-            Icons.star_border,
-            color: Colors.yellow,
-            size: 20.0,
-          );
-        }),
-      ],
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.amber.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ...List.generate(fullStars, (index) {
+            return Icon(
+              Icons.star,
+              color: Colors.amber,
+              size: 20.0,
+            );
+          }),
+          if (fractionalStar >= 1)
+            Icon(
+              Icons.star_half,
+              color: Colors.amber,
+              size: 20.0,
+            ),
+          ...List.generate(emptyStars, (index) {
+            return Icon(
+              Icons.star_border,
+              color: Colors.amber,
+              size: 20.0,
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -159,131 +163,177 @@ class MangaView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 60, 111, 150),
+      backgroundColor: Colors.grey[200], // Fondo gris claro
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () async {
-                try {
-                  final galleries = await ApiService().getGallery(LoginScreen.username);
-                  final List<dynamic> galleryList = galleries["resultat"];
-                  final List<String> collectionNames = galleryList.map((g) => g["name"].toString()).toList();
+            onPressed: () async {
+              try {
+                final galleries = await ApiService().getGallery(LoginScreen.username);
+                final List<dynamic> galleryList = galleries["resultat"];
+                final List<String> collectionNames = galleryList.map((g) => g["name"].toString()).toList();
 
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Selecciona una colección'),
-                        content: SizedBox(
-                          width: double.maxFinite,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: collectionNames.length,
-                            itemBuilder: (context, index) {
-                              final collection = collectionNames[index];
-                              return ListTile(
-                                title: Text(collection),
-                                onTap: () {
-                                  Navigator.of(context).pop(); // Cierra el diálogo
-                                  ApiService().addInGallery(
-                                    LoginScreen.username,
-                                    collection,
-                                    id,
-                                  );
-                                },
-                              );
-                            },
-                          ),
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Please choose one of your existing collections'),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: collectionNames.length,
+                          itemBuilder: (context, index) {
+                            final collection = collectionNames[index];
+                            return ListTile(
+                              title: Text(collection),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                ApiService().addInGallery(
+                                  LoginScreen.username,
+                                  collection,
+                                  id,
+                                );
+                              },
+                            );
+                          },
                         ),
-                      );
-                    },
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${e.toString()}')),
-                  );
-                }
-              },
+                      ),
+                    );
+                  },
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.network(
-                  imageUrl,
-                  width: MediaQuery.of(context).size.width < 600 ? 100 : 150,
-                  height: MediaQuery.of(context).size.width < 600 ? 150 : 225,
-                  fit: BoxFit.cover,
-                ),                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          starRating(score),
-                          const SizedBox(width: 8),
-                          statusWidget(status),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      customRatingWidget(ranking),
-                      const SizedBox(height: 8),
-                      GenreWidget(genres),
-                    ],
-                  ),
-                ),
-              ],
+            // Título para "Manga Info"
+            Text(
+              "Manga Info",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
             ),
+            // Contenedor de "Manga Info"
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8.0,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.network(
+                    imageUrl,
+                    width: MediaQuery.of(context).size.width < 600 ? 100 : 150,
+                    height: MediaQuery.of(context).size.width < 600 ? 150 : 225,
+                    fit: BoxFit.cover,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            starRating(score),
+                            const SizedBox(width: 8),
+                            statusWidget(status),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        customRatingWidget(ranking),
+                        const SizedBox(height: 8),
+                        GenreWidget(genres),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 25),
+
+            // Título para "synopsis"
+            Text(
+              "Synopsis",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            // Contenedor de "Description"
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              margin: const EdgeInsets.only(top: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8.0,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Text(
+                description,
+                style: TextStyle(color: Colors.black87),
+              ),
+            ),
+
             const SizedBox(height: 16),
-            Text(description, style: TextStyle(color: Colors.white)),
-            const SizedBox(height: 16),
+
             if (chapters > 0) ...[
-              Text("Chapters", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              Divider(color: Colors.white, thickness: 2),
-              Text("Total Chapters: $chapters", style: TextStyle(fontSize: 16, color: Colors.white)),
+              Text("Chapters", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+              Divider(color: Colors.black, thickness: 2),
+              Text("Total Chapters: $chapters", style: TextStyle(fontSize: 16, color: Colors.black)),
               const SizedBox(height: 8),
             ],
             if (chapters <= 0)
               const Center(
                 child: Text(
                   "Chapters are not available at the moment.",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
               )
             else
-            // Usamos ListView directamente sin Expanded ni shrinkWrap
               ListView.separated(
-                shrinkWrap: true, // Para que el ListView ocupe solo el espacio necesario
-                physics: NeverScrollableScrollPhysics(), // Desactiva el desplazamiento dentro del ListView
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: chapters,
                 separatorBuilder: (context, index) => Divider(color: Colors.grey),
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.white)),
+                    title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.black)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Icon(Icons.favorite_border, color: Colors.white),
+                        Icon(Icons.favorite_border, color: Colors.black),
                         SizedBox(width: 8),
-                        Icon(Icons.bookmark_border, color: Colors.white),
+                        Icon(Icons.bookmark_border, color: Colors.black),
                         SizedBox(width: 8),
-                        Icon(Icons.remove_red_eye, color: Colors.white),
+                        Icon(Icons.remove_red_eye, color: Colors.black),
                       ],
                     ),
                   );

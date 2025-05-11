@@ -38,6 +38,14 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
     imageFuture = ApiService().getGalleryImage(widget.id);
   }
 
+  // Agrega esta función para refrescar la lista de mangas en DetailsProfileView
+  void refreshMangaList() {
+    setState(() {
+      mangasFuture = fetchMangas();
+    });
+  }
+
+
   // Esta función se encarga de llamar a los mangas de forma secuencial
   Future<List<Map<String, dynamic>>> fetchMangas() async {
     List<Map<String, dynamic>> mangasData = [];
@@ -301,6 +309,8 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             type: manga['type'],
                             id: manga["id"],
                             galleryName: widget.collectionName,
+                            refreshMangaList: refreshMangaList,
+
                           )
                               : MangaCollectionWidget(
                             title: manga['title'],
@@ -314,6 +324,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             type: manga['type'],
                             id: manga["id"],
                             galleryName: widget.collectionName,
+                            refreshMangaList: refreshMangaList,
                           ),
                         );
                       }).toList(),
@@ -345,50 +356,3 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
   }
 }
 
-
-
-/* En un momento se podra poner esto que es para las api
-Expanded(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          widget.collectionName ?? "Sin nombre",
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      const SizedBox(height: 8),
-      FutureBuilder<int>(
-        future: ApiService().getLikes(widget.id),
-        builder: (context, snapshot) {
-          final likes = snapshot.data ?? 0;
-          return GestureDetector(
-            onTap: () async {
-              await ApiService().likeCollection(widget.id);
-              setState(() {}); // Refresca el FutureBuilder
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.favorite_border, color: Colors.white, size: 20),
-                const SizedBox(width: 6),
-                Text(
-                  "$likes likes",
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    ],
-  ),
-),
- */

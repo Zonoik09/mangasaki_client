@@ -503,7 +503,7 @@ class ApiService {
   }
 
   // Metodo para borrar gallery
-  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, int mangaid ,BuildContext context) async {
+  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, int mangaid) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/remove_From_Gallery');
 
     try {
@@ -519,14 +519,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        _showSnackPositiveBar(context, "Manga was successfully removed from $nameGalery.");
         return responseData;
       } else {
-        _handleError(response, context);
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Connection error or invalid data: $e');
       throw Exception('Connection error or invalid data: $e');
     }
   }

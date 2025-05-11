@@ -101,6 +101,22 @@ class _ProfileViewState extends State<ProfileView> {
     return null;
   }
 
+  Widget _iconCircleButton(IconData icon, Color borderColor, VoidCallback onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(10),
+        side: BorderSide(color: borderColor, width: 2),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      child: Icon(icon, color: borderColor),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -139,17 +155,20 @@ class _ProfileViewState extends State<ProfileView> {
                       // === Profile Section ===
                       const Text(
                         "Profile",
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: [
-                            BoxShadow(color: Colors.black12, blurRadius: 8)
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
                           ],
                         ),
                         child: Column(
@@ -158,72 +177,49 @@ class _ProfileViewState extends State<ProfileView> {
                             // Banner
                             Stack(
                               children: [
-                                Container(
-                                  width: double.infinity,
-                                  height: isDesktop ? 200 : 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: isDesktop ? 220 : 140,
                                     color: Colors.grey.shade300,
+                                    child: bannerImageUrl != null
+                                        ? (bannerImageUrl!.startsWith("data:image/")
+                                        ? Image.memory(
+                                      base64Decode(bannerImageUrl!.split(",")[1]),
+                                      fit: BoxFit.cover,
+                                    )
+                                        : Image.network(
+                                      bannerImageUrl!,
+                                      fit: BoxFit.cover,
+                                    ))
+                                        : const Center(child: Text("No Banner Available")),
                                   ),
-                                  child: bannerImageUrl != null
-                                      ? ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          child: bannerImageUrl!
-                                                  .startsWith("data:image/")
-                                              ? Image.memory(
-                                                  base64Decode(bannerImageUrl!
-                                                      .split(",")[1]),
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : Image.network(bannerImageUrl!,
-                                                  fit: BoxFit.cover),
-                                        )
-                                      : const Center(
-                                          child: Text("No Banner Available")),
                                 ),
                                 Positioned(
-                                  top: 10,
-                                  right: 10,
+                                  top: 1,
+                                  right: 1,
                                   child: Row(
                                     children: [
-                                      ElevatedButton(
-                                        onPressed: changeBannerImage,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                          shape: const CircleBorder(),
-                                          padding: const EdgeInsets.all(10),
-                                        ),
-                                        child: const Icon(Icons.upload_file,
-                                            color: Colors.white),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          ApiService().changeBannerPicture(
-                                              nickname, '', context);
-                                          fetchBannerImage();
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          shape: const CircleBorder(),
-                                          padding: const EdgeInsets.all(10),
-                                        ),
-                                        child: const Icon(Icons.delete,
-                                            color: Colors.white),
-                                      ),
+                                      _iconCircleButton(Icons.upload_file, Colors.green, changeBannerImage),
+                                      _iconCircleButton(Icons.delete, Colors.red, () async {
+                                        await ApiService().changeBannerPicture(nickname, '', context);
+                                        await fetchBannerImage();
+                                      },),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
-                            // Perfil info
+                            const SizedBox(height: 24),
+
+                            // Profile Info
                             Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CircleAvatar(
                                   radius: 50,
-                                  backgroundColor: Colors.transparent,
+                                  backgroundColor: Colors.grey[300],
                                   child: ClipOval(
                                     child: Image.network(
                                       "$profileImageUrl?${DateTime.now().millisecondsSinceEpoch}",
@@ -233,72 +229,64 @@ class _ProfileViewState extends State<ProfileView> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 20),
+
+                                // Nickname & Likes
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(nickname,
-                                          style: const TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold)),
-                                      Text("Likes: $likes",
-                                          style: const TextStyle(fontSize: 18)),
+                                      Text(
+                                        nickname,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.pink.shade50,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.favorite, color: Colors.pink, size: 16),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              "$likes",
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.pink,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
-                                Column(
-                                  children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () async {
-                                        String? base64File =
-                                            await pickFileAndConvertToBase64();
-                                        if (base64File != null) {
-                                          await ApiService()
-                                              .changeProfilePicture(nickname,
-                                                  base64File, context);
-                                          setState(() {
-                                            profileImageUrl =
-                                                "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
-                                          });
-                                        }
-                                      },
-                                      icon: const Icon(Icons.upload_file,
-                                          color: Colors.white),
-                                      label: const Text("Change profile picture",
-                                          style:
-                                              TextStyle(color: Colors.white)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ElevatedButton.icon(
-                                      onPressed: () async {
-                                        await ApiService().changeProfilePicture(
-                                            nickname, '', context);
-                                        setState(() {
-                                          profileImageUrl = "";
-                                        });
-                                      },
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.white),
-                                      label: const Text("Delete profile picture",
-                                          style:
-                                              TextStyle(color: Colors.white)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 5), // Space between profile info and buttons
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Change photo button with icon only for mobile
+                                _iconCircleButton(Icons.upload_file, Colors.green, () async {
+                                  String? base64File = await pickFileAndConvertToBase64();
+                                  if (base64File != null) {
+                                    await ApiService().changeProfilePicture(nickname, base64File, context);
+                                    fetchUserData();
+                                  }
+                                },),
+                                // Delete photo button with icon only for mobile
+                                _iconCircleButton(Icons.delete, Colors.red, () async {
+                                  await ApiService().changeProfilePicture(nickname, '', context);
+                                },),
                               ],
                             ),
                           ],
