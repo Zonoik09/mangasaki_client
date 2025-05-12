@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'NotificationRepository.dart';
@@ -150,7 +151,7 @@ class AppData extends ChangeNotifier {
           await _handleNotification(data);
           break;
         case "notificationSent":
-          print("notificationSent");
+          print(data);
 
         default:
           print("ℹ️ Tipo de mensaje no manejado: ${data["type"]}");
@@ -172,11 +173,26 @@ class AppData extends ChangeNotifier {
         NotificationRepository.showTestNotification(data["data"]["message"]);
       }
     } else if (subtype == "friend") {
-      print("✅ Solicitud de amistad aceptada.");
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
     } else if (subtype == "like") {
-      print("👍 Notificación de like recibida.");
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
     } else if (subtype == "recommendation") {
-      print("📌 Recomendación recibida.");
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
     }
 
     if (detail == "notificationSent") {

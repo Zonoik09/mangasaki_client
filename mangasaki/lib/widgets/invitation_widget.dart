@@ -8,6 +8,7 @@ class InvitationWidget extends StatelessWidget {
   final String message;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+  final String type;
 
   const InvitationWidget({
     Key? key,
@@ -16,6 +17,7 @@ class InvitationWidget extends StatelessWidget {
     required this.onAccept,
     required this.onDecline,
     required this.message,
+    required this.type,
   }) : super(key: key);
 
   @override

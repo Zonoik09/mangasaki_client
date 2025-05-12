@@ -47,6 +47,7 @@ class _NotificationViewState extends State<NotificationView> {
 
       // Acceder a la lista 'data' que contiene las notificaciones
       final List<dynamic> data = notifications['data'];
+      print(notifications["data"]);
       setState(() {
         friendRequests = List<Map<String, dynamic>>.from(data);
       });
@@ -207,7 +208,7 @@ class _NotificationViewState extends State<NotificationView> {
                 },
                 onDecline: () {
                   _showDeclineDialog(notificationId, username);
-                }, message: notif['message'],
+                }, message: notif['message'], type: notif["type"],
               );
             } else {
               return const Text('No se pudo cargar la imagen');
