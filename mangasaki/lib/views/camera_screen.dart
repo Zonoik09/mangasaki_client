@@ -186,8 +186,50 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
       // Mostrar la respuesta
       // Despues se tendra que comparar el type, dependiendo cual sea mostrar una cosa o otra
-      print(response["data"]["title"]);
-      print(response["data"]["description"]);
+      final data = response["data"];
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          final String title = data["title"] ?? "No title";
+          final String description = data["description"] ?? "No description";
+          final String? imageUrl = data["imageLinks"]?["thumbnail"];
+          final List<dynamic>? authors = data["authors"];
+          final String authorString = authors != null && authors.isNotEmpty
+              ? authors.join(", ")
+              : "Unknown author";
+
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (imageUrl != null)
+                    Center(
+                      child: Image.network(imageUrl),
+                    ),
+                  SizedBox(height: 10),
+                  Text("Author(s): $authorString",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 10),
+                  Text(description, style: TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text("Close"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+
+
+
 
       // Mostrar un mensaje de éxito (puedes cambiarlo o personalizarlo)
       ScaffoldMessenger.of(context).showSnackBar(
