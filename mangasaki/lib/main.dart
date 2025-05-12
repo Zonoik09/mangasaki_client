@@ -4,6 +4,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'connection/NotificationRepository.dart';
 import 'connection/app_data.dart';
+import 'connection/friendManager.dart';
 import 'connection/userStorage.dart';
 import 'views/login_view.dart';
 import 'views/main_view.dart';
@@ -39,11 +40,15 @@ void main() async {
   }
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppData(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppData()),
+        ChangeNotifierProvider(create: (_) => FriendManager()),
+      ],
       child: const MyApp(),
     ),
   );
+
 }
 
 class MyApp extends StatelessWidget {

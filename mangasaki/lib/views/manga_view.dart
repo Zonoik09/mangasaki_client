@@ -175,7 +175,6 @@ class MangaView extends StatelessWidget {
                 final galleries = await ApiService().getGallery(LoginScreen.username);
                 final List<dynamic> galleryList = galleries["resultat"];
                 final List<String> collectionNames = galleryList.map((g) => g["name"].toString()).toList();
-
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -205,6 +204,58 @@ class MangaView extends StatelessWidget {
                     );
                   },
                 );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.menu_book, color: Colors.white),
+            onPressed: () async {
+              try {
+
+
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.hourglass_empty, color: Colors.white),
+            onPressed: () async {
+              try {
+
+
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.done_all, color: Colors.white),
+            onPressed: () async {
+              try {
+
+
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel, color: Colors.white),
+            onPressed: () async {
+              try {
+
+
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Error: ${e.toString()}')),
@@ -326,16 +377,6 @@ class MangaView extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.black)),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.favorite_border, color: Colors.black),
-                        SizedBox(width: 8),
-                        Icon(Icons.bookmark_border, color: Colors.black),
-                        SizedBox(width: 8),
-                        Icon(Icons.remove_red_eye, color: Colors.black),
-                      ],
-                    ),
                   );
                 },
               ),

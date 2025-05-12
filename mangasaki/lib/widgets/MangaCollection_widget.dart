@@ -107,8 +107,9 @@ class MangaCollectionWidget extends StatelessWidget {
                 ),
                 IconButton(
                   icon: Icon(Icons.close, color: Colors.white),
-                  onPressed: () {
+                  onPressed: () async {
                     ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
+                    await Future.delayed(const Duration(seconds: 1));
                     refreshMangaList();
                   },
                 ),

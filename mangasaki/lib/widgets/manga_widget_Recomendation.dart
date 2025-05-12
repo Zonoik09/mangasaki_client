@@ -12,7 +12,6 @@ class MangaWidgetRecomendation extends StatelessWidget {
   final int chapters;
   final List<String> genres;
   final String type;
-  final String nickname;
   final int id;
 
   const MangaWidgetRecomendation({
@@ -26,7 +25,6 @@ class MangaWidgetRecomendation extends StatelessWidget {
     required this.chapters,
     required this.genres,
     required this.type,
-    required this.nickname,
     required this.id,
   }) : super(key: key);
 
@@ -57,7 +55,7 @@ class MangaWidgetRecomendation extends StatelessWidget {
         );
       },
       child: SizedBox(
-        width: 200, // Establece un ancho fijo o proporcional
+        width: 195.3,
         child: Card(
           color: Color.fromARGB(255, 60, 111, 150),
           elevation: 5,
@@ -73,7 +71,7 @@ class MangaWidgetRecomendation extends StatelessWidget {
                 child: Image.network(
                   imageUrl,
                   width: double.infinity,
-                  height: 140,
+                  height: 230,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -98,15 +96,6 @@ class MangaWidgetRecomendation extends StatelessWidget {
                       style: const TextStyle(fontSize: 13, color: Colors.white),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      "Recommended by $nickname",
-                      style: const TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontSize: 11,
-                        color: Colors.white70,
-                      ),
                     ),
                   ],
                 ),

@@ -5,7 +5,6 @@ import 'package:mangasaki/widgets/addFriend_widget.dart';
 import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
 import '../connection/app_data.dart';
-import '../connection/utils_websockets.dart';
 import 'login_view.dart';
 
 class AddFriendView extends StatefulWidget {
@@ -59,15 +58,6 @@ class _AddFriendViewState extends State<AddFriendView> {
       return image;
     } catch (e) {
       throw Exception("Error al cargar la imagen del usuario");
-    }
-  }
-
-  Future<Map<String, dynamic>> getUserInfo(String nickname) async {
-    try {
-      final id = await ApiService().getUserInfo(nickname);
-      return id;
-    } catch (e) {
-      throw Exception("Error al cargar el ID del usuario");
     }
   }
 

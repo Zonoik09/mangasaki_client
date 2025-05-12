@@ -1,10 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../connection/api_service.dart';
+import '../views/profileFriend_view.dart';
 
 class friendWidget extends StatelessWidget {
   final String username;
-  final String image;
+  final Uint8List? image;
   final bool online;
 
   const friendWidget({
@@ -38,9 +41,10 @@ class friendWidget extends StatelessWidget {
           // Imagen de perfil
           CircleAvatar(
             radius: 24,
-            backgroundImage: NetworkImage(image),
+            backgroundImage: image != null ? MemoryImage(image!) : null,
             backgroundColor: Colors.grey[300],
           ),
+
 
           SizedBox(width: 12),
 
@@ -61,7 +65,12 @@ class friendWidget extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.person, color: Colors.blueAccent),
             onPressed: () {
-              // Acción para ver perfil
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileFriendView(nickname: username),
+                ),
+              );
             },
           ),
 

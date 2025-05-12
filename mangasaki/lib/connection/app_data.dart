@@ -1,113 +1,193 @@
-import 'dart:convert';
 import 'dart:async';
-import 'dart:ui' as ui;
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'utils_websockets.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'NotificationRepository.dart';
+import 'api_service.dart';
+import 'friendManager.dart';
+import 'userStorage.dart';
+
+enum ConnectionStatus { disconnected, disconnecting, connecting, connected }
 
 class AppData extends ChangeNotifier {
-  // Atributs per gestionar la connexió
-  final WebSocketsHandler _wsHandler = WebSocketsHandler();
-  final String _wsServer = "mangasaki.ieti.site/ws";
-  final int _wsPort = 3000;
+  final String _serverUrl = "wss://mangasaki.ieti.site/ws";
+  WebSocketChannel? _channel;
+  String? socketId;
   bool isConnected = false;
-  int _reconnectAttempts = 0;
-  final int _maxReconnectAttempts = 5;
-  final Duration _reconnectDelay = Duration(seconds: 3);
+  ConnectionStatus connectionStatus = ConnectionStatus.disconnected;
 
-  AppData() {
-    _connectToWebSocket();
-  }
+  // Variables de reconexión eliminadas
 
+  AppData();
 
-  // Connectar amb el servidor (amb reintents si falla)
-  void _connectToWebSocket() {
-    if (_reconnectAttempts >= _maxReconnectAttempts) {
-      if (kDebugMode) {
-        print("S'ha assolit el màxim d'intents de reconnexió.");
-      }
+  // Metodo para iniciar la conexión al WebSocket
+  void connectToWebSocket() {
+    if (connectionStatus == ConnectionStatus.connected) {
+      print("Ya estás conectado. No intentamos reconectar.");
       return;
     }
 
-    isConnected = false;
+    connectionStatus = ConnectionStatus.connecting;
     notifyListeners();
 
-    _wsHandler.connectToServer(
-      _wsServer,
-      _wsPort,
-      _onWebSocketMessage,
-      onError: _onWebSocketError,
-      onDone: _onWebSocketClosed,
-    );
-
-    isConnected = true;
-    _reconnectAttempts = 0;
-    notifyListeners();
-  }
-
-  // Tractar un missatge rebut des del servidor
-  void _onWebSocketMessage(String message) {
     try {
-      var data = jsonDecode(message);
+      _channel = WebSocketChannel.connect(Uri.parse(_serverUrl));
+      connectionStatus = ConnectionStatus.connected;
+      isConnected = true;
+      notifyListeners();
+
+      _channel!.stream.listen(
+            (message) {
+          _onMessageReceived(message);
+        },
+        onError: (error) {
+          print("WebSocket error: $error");
+          _handleDisconnection();
+        },
+        onDone: () {
+          print("WebSocket cerrado");
+          _handleDisconnection();
+        },
+      );
+      print("Conexión establecida.");
     } catch (e) {
-      if (kDebugMode) {
-        print("Error processant missatge WebSocket: $e");
-      }
+      print("Error al conectar: $e");
+      _handleDisconnection();
     }
   }
 
-  // Tractar els errors de connexió
-  void _onWebSocketError(dynamic error) {
-    if (kDebugMode) {
-      print("Error de WebSocket: $error");
+  void _handleDisconnection() {
+    if (_channel != null) {
+      _channel!.sink.close();
     }
+    connectionStatus = ConnectionStatus.disconnected;
     isConnected = false;
     notifyListeners();
-    _scheduleReconnect();
+
+    // Intenta reconectar después de un retraso
+    Future.delayed(Duration(seconds: 5), () {
+      print("Reintentando conexión...");
+      connectToWebSocket();
+    });
   }
 
-  // Tractar les desconnexions
-  void _onWebSocketClosed() {
-    if (kDebugMode) {
-      print("WebSocket tancat. Intentant reconnectar...");
-    }
-    isConnected = false;
-    notifyListeners();
-    _scheduleReconnect();
-  }
-
-  // Programar una reconnexió (en cas que hagi fallat)
-  void _scheduleReconnect() {
-    if (_reconnectAttempts < _maxReconnectAttempts) {
-      _reconnectAttempts++;
-      if (kDebugMode) {
-        print(
-          "Intent de reconnexió #$_reconnectAttempts en ${_reconnectDelay.inSeconds} segons...",
-        );
-      }
-      Future.delayed(_reconnectDelay, () {
-        //_connectToWebSocket();
-      });
-    } else {
-      if (kDebugMode) {
-        print(
-          "No es pot reconnectar al servidor després de $_maxReconnectAttempts intents.",
-        );
-      }
-    }
-  }
-
-
-  // Desconnectar-se del servidor
-  void disconnect() {
-    _wsHandler.disconnectFromServer();
-    isConnected = false;
-    notifyListeners();
-  }
-
-  // Enviar un missatge al servidor
   void sendMessage(String message) {
-    if (isConnected) {
-      _wsHandler.sendMessage(message);
+    if (_channel == null || connectionStatus != ConnectionStatus.connected) {
+      print("❌ No conectado. Mensaje no enviado.");
+      print("Estado de conexión: $connectionStatus");
+
+      // Intentar reconectar si no estás conectado
+      if (connectionStatus == ConnectionStatus.disconnected) {
+        print("🔄 Reintentando conexión...");
+        connectToWebSocket();
+      }
+
+      return; // No enviar el mensaje si no estamos conectados.
+    }
+
+    _channel!.sink.add(message);
+    print("✅ Mensaje enviado: $message");
+  }
+
+
+
+
+  void _onMessageReceived(String message) async {
+    await Future.delayed(Duration(milliseconds: 500)); // Simula carga
+
+    try {
+      final data = jsonDecode(message);
+      if (data is! Map<String, dynamic> || !data.containsKey("type")) return;
+
+      switch (data["type"]) {
+        case "welcome":
+          socketId = data["id"];
+          print("🟢 Conectado al servidor con ID: $socketId");
+
+          final userData = await UserStorage.getUserData();
+          if (userData != null && userData.containsKey("resultat")) {
+            final username = userData["resultat"]["nickname"];
+            final joinedMessage = jsonEncode({
+              "type": "joinedClientWithInfo",
+              "id": socketId,
+              "username": username,
+            });
+            sendMessage(joinedMessage);
+          } else {
+            print("⚠️ No se encontró nombre de usuario.");
+          }
+          break;
+
+        case "joinedClientWithInfoResponse":
+          print("🔄 Respuesta de joinedClientWithInfoResponse recibida.");
+          final userData = await UserStorage.getUserData();
+          if (userData != null && userData.containsKey("resultat")) {
+            final username = userData["resultat"]["nickname"];
+            requestFriendsList(username); // <- Aquí llamas para que los pida
+          }
+          break;
+
+        case "amigosOnlineOfflineCompartidos":
+          print("🤝 Lista de amigos recibida.");
+          print(data["data"]);
+          FriendManager().updateFriends(data["data"]);
+          break;
+
+        case "ping":
+          print("📡 Ping recibido del servidor.");
+          break;
+
+        case "newClient":
+          print("🆕 Nuevo cliente conectado.");
+          break;
+
+        case "notification":
+          await _handleNotification(data);
+          break;
+
+        default:
+          print("ℹ️ Tipo de mensaje no manejado: ${data["type"]}");
+      }
+    } catch (e) {
+      print("❌ Error al procesar mensaje: $e");
     }
   }
+
+  Future<void> _handleNotification(Map<String, dynamic> data) async {
+    final subtype = data["subtype"];
+    final detail = data["detail"];
+
+    if (subtype == "friend_request") {
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      }
+      else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
+    } else if (subtype == "friend") {
+      // Notificación de amistad aceptada
+      print("✅ Solicitud de amistad aceptada.");
+    } else if (subtype == "like") {
+      print("👍 Notificación de like recibida.");
+    } else if (subtype == "recommendation") {
+      print("📌 Recomendación recibida.");
+    }
+
+    if (detail == "notificationSent") {
+      print("📬 Notificación enviada confirmada por servidor.");
+    }
+  }
+
+  void requestFriendsList(String username) {
+    final message = jsonEncode({
+      "type": "getFriendsOnlineOffline",
+      "username": username,
+    });
+    sendMessage(message);
+  }
+
 }

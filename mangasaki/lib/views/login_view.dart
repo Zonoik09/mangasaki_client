@@ -211,10 +211,14 @@ class _LoginScreenState extends State<LoginScreen> {
               print("Nombre de usuario: $userInfo");
               await UserStorage.saveUserData(userInfo);
               LoginScreen.username = _usernameController.text;
+              // Obtener la instancia de AppData
               final appData = Provider.of<AppData>(context, listen: false);
+              // Intentar establecer la conexión WebSocket
+              appData.connectToWebSocket();
             } catch (e) {
               print('Error al obtener y guardar la información del usuario: $e');
             }
+
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => MainView()),

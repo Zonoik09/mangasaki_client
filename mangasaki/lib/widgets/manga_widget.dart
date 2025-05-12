@@ -61,7 +61,6 @@ class MangaWidget extends StatelessWidget {
         builder: (context, constraints) {
           double cardWidth = constraints.maxWidth;
           double cardHeight = constraints.maxHeight;
-          print("$cardWidth | $cardHeight");
           return Card(
             color: Color.fromARGB(255, 60, 111, 150),
             elevation: 5,

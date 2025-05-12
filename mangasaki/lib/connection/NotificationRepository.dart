@@ -36,7 +36,7 @@ class NotificationRepository {
     return file.path;
   }
 
-  static Future<void> showMessageStyleNotification(String mensaje, Future<Uint8List> imageFuture) async {
+  static Future<void> showMessageStyleNotification(String mensaje, Uint8List imageFuture) async {
     final tempDir = await getTemporaryDirectory();
     final filePath = '${tempDir.path}/notificacion_imagen.png';
     final file = File(filePath);

@@ -50,27 +50,44 @@ class _MainViewState extends State<MainView> {
   Future<void> _loadNotifications() async {
     try {
       final userData = await UserStorage.getUserData();
-      userId = userData?['resultat']['id'];
-      final notifications = await ApiService().getNotifications(userId);
-      final List<dynamic> data = notifications['data'];
+      final currentUserId = userData?['resultat']['id'];
 
-      setState(() {
-        friendRequests = List<Map<String, dynamic>>.from(data);
-        pendingNotifications = data.length;
-      });
+      if (currentUserId == null) return;
+
+      final notifications = await ApiService().getNotifications(currentUserId);
+      final List<dynamic> data = notifications['data'];
+      final int newCount = data.length;
+
+      // Solo actualiza si hay un cambio real
+      if (mounted &&
+          (newCount != pendingNotifications || currentUserId != userId)) {
+        setState(() {
+          userId = currentUserId;
+          friendRequests = List<Map<String, dynamic>>.from(data);
+          pendingNotifications = newCount;
+        });
+      }
     } catch (e) {
       print("Error al cargar notificaciones: $e");
     }
   }
 
 
+
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.selectedIndex;
-    _loadNotifications();
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _loadNotifications());
+
+    // Ejecutar después del primer frame, sin bloquear construcción inicial
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications(); // primera carga, no bloquea el build
+      _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+        _loadNotifications(); // sigue ejecutándose sin afectar UI
+      });
+    });
   }
+
 
   Widget _principalView(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -394,7 +411,7 @@ class _MainViewState extends State<MainView> {
                 ),
             ],
           ),
-          if (MediaQuery.of(context).size.width < 600)
+          if (Platform.isAndroid)
             IconButton(
               icon: Icon(Icons.camera_alt, color: Colors.white),
               onPressed: () {
