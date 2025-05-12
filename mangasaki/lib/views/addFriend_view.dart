@@ -28,8 +28,10 @@ class _AddFriendViewState extends State<AddFriendView> {
   }
 
   Future<void> fetchUsers(String letters) async {
+    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+    final userId = usuario["resultat"]["id"];
     try {
-      final result = await ApiService().getUsersFriends(letters);
+      final result = await ApiService().getUsersFriends(letters,userId);
       if (!mounted) return;
       setState(() {
         users = result;

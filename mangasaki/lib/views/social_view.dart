@@ -136,8 +136,9 @@ class _SocialViewState extends State<SocialView> {
 
     // Convertir el mapa a una cadena JSON
     String messageJson = jsonEncode(messageData);
+    final appData = Provider.of<AppData>(context, listen: false);
+    appData.sendMessage(messageJson);
 
-    AppData().sendMessage(messageJson);
   }
 
   @override

@@ -337,12 +337,16 @@ class ApiService {
   }
 
   // Obtener información del usuario
-  Future<Map<String, dynamic>> getUsersFriends(String letters) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUsersByCombination/$letters');
+  Future<Map<String, dynamic>> getUsersFriends(String letters, int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUsersByCombination');
 
-    final response = await http.get(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'combination': letters,
+        'userId': id,
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -675,22 +679,21 @@ class ApiService {
 
 
   Future<Map<String, dynamic>> removeMangaStatus(int id, int mangaid) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/manga/deleteMangaStatus');
+    final url = Uri.parse(
+      'https://mangasaki.ieti.site/api/manga/deleteMangaStatus?userId=$id&mangaId=$mangaid',
+    );
 
     try {
       final response = await http.delete(
         url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "userId": id,
-          "mangaId": mangaid
-        }),
+        headers: {'accept': '*/*'}, // opcional pero copia de curl
       );
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         return responseData;
       } else {
+        print('Error ${response.statusCode}: ${response.body}');
         return {};
       }
     } catch (e) {
@@ -707,7 +710,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "userId": userId,
-          "mangaid": mangaid,
+          "mangaId": mangaid,
           "status": status
         }),
       );
@@ -721,6 +724,5 @@ class ApiService {
       throw Exception('Connection error or invalid data: $e');
     }
   }
-
 
 }

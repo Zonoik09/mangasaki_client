@@ -207,7 +207,7 @@ class _NotificationViewState extends State<NotificationView> {
                 },
                 onDecline: () {
                   _showDeclineDialog(notificationId, username);
-                },
+                }, message: notif['message'],
               );
             } else {
               return const Text('No se pudo cargar la imagen');

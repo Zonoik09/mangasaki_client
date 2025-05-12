@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mangasaki/views/profile_view.dart';
+import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
 import '../connection/app_data.dart';
 import '../widgets/MangaCollection_widget.dart';
@@ -13,13 +14,13 @@ import 'main_view.dart';
 class DetailsProfileFriendView extends StatefulWidget {
   final String collectionName;
   final int id;
-  final int userId;
+  final String username;
 
   DetailsProfileFriendView({
     super.key,
     required this.collectionName,
     required this.id,
-    required this.userId
+    required this.username
   });
 
   @override
@@ -185,7 +186,7 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
                                     final fromId = usuario["resultat"]["id"];
                                     sendLikeNotificationViaSocket(
                                       senderUserId: fromId,
-                                      receiverUserId: widget.userId,
+                                      receiverUsername: widget.username,
                                       galleryId: widget.id,
                                     );
                                   } catch (e) {
@@ -295,18 +296,18 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
 
   void sendLikeNotificationViaSocket({
     required int senderUserId,
-    required int receiverUserId,
+    required String receiverUsername,
     required int galleryId,
   }) {
     final message = {
       'type': 'like_notification',
       'sender_user_id': senderUserId,
-      'receiver_user_id': receiverUserId,
+      'receiver_username': receiverUsername,
       'gallery_id': galleryId,
     };
     final jsonMessage = jsonEncode(message);
-
-    AppData().sendMessage(jsonMessage);
+    final appData = Provider.of<AppData>(context, listen: false);
+    appData.sendMessage(jsonMessage);
   }
 
 

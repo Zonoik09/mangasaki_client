@@ -5,6 +5,7 @@ import 'dart:typed_data';
 class InvitationWidget extends StatelessWidget {
   final String username;
   final Uint8List profileImageUrl;
+  final String message;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
 
@@ -14,6 +15,7 @@ class InvitationWidget extends StatelessWidget {
     required this.profileImageUrl,
     required this.onAccept,
     required this.onDecline,
+    required this.message,
   }) : super(key: key);
 
   @override
@@ -38,7 +40,7 @@ class InvitationWidget extends StatelessWidget {
           // Texto expandido
           Expanded(
             child: Text(
-              "$username has sent you a friend request",
+              message,
               style: const TextStyle(fontSize: 16),
               softWrap: true,
             ),

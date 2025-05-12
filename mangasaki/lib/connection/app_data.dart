@@ -19,14 +19,14 @@ class AppData extends ChangeNotifier {
   bool isConnected = false;
   ConnectionStatus connectionStatus = ConnectionStatus.disconnected;
 
-  // Variables de reconexión eliminadas
+  int _reconnectAttempts = 0;
+  final int _maxReconnectAttempts = 5;
 
   AppData();
 
-  // Metodo para iniciar la conexión al WebSocket
   void connectToWebSocket() {
-    if (connectionStatus == ConnectionStatus.connected) {
-      print("Ya estás conectado. No intentamos reconectar.");
+    if (connectionStatus == ConnectionStatus.connected || connectionStatus == ConnectionStatus.connecting) {
+      print("Ya estás conectado o intentando conectar.");
       return;
     }
 
@@ -37,24 +37,24 @@ class AppData extends ChangeNotifier {
       _channel = WebSocketChannel.connect(Uri.parse(_serverUrl));
       connectionStatus = ConnectionStatus.connected;
       isConnected = true;
+      _reconnectAttempts = 0; // Reset reconnection attempts
       notifyListeners();
 
       _channel!.stream.listen(
-            (message) {
-          _onMessageReceived(message);
-        },
+            (message) => _onMessageReceived(message),
         onError: (error) {
-          print("WebSocket error: $error");
+          print("❌ WebSocket error: $error");
           _handleDisconnection();
         },
         onDone: () {
-          print("WebSocket cerrado");
+          print("⚠️ WebSocket cerrado. Código: ${_channel!.closeCode}, Razón: ${_channel!.closeReason}");
           _handleDisconnection();
         },
       );
-      print("Conexión establecida.");
+
+      print("✅ Conexión establecida.");
     } catch (e) {
-      print("Error al conectar: $e");
+      print("❌ Error al conectar: $e");
       _handleDisconnection();
     }
   }
@@ -63,13 +63,22 @@ class AppData extends ChangeNotifier {
     if (_channel != null) {
       _channel!.sink.close();
     }
+
     connectionStatus = ConnectionStatus.disconnected;
     isConnected = false;
     notifyListeners();
 
-    // Intenta reconectar después de un retraso
-    Future.delayed(Duration(seconds: 5), () {
-      print("Reintentando conexión...");
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      print("❌ Máximo de intentos de reconexión alcanzado. Deteniendo intentos.");
+      return;
+    }
+
+    int delaySeconds = 5 * (_reconnectAttempts + 1); // backoff exponencial simple
+    _reconnectAttempts++;
+
+    print("🔁 Reintentando conexión en $delaySeconds segundos (intento $_reconnectAttempts de $_maxReconnectAttempts)");
+
+    Future.delayed(Duration(seconds: delaySeconds), () {
       connectToWebSocket();
     });
   }
@@ -79,24 +88,18 @@ class AppData extends ChangeNotifier {
       print("❌ No conectado. Mensaje no enviado.");
       print("Estado de conexión: $connectionStatus");
 
-      // Intentar reconectar si no estás conectado
       if (connectionStatus == ConnectionStatus.disconnected) {
         print("🔄 Reintentando conexión...");
         connectToWebSocket();
       }
-
-      return; // No enviar el mensaje si no estamos conectados.
+      return;
     }
-
     _channel!.sink.add(message);
     print("✅ Mensaje enviado: $message");
   }
 
-
-
-
   void _onMessageReceived(String message) async {
-    await Future.delayed(Duration(milliseconds: 500)); // Simula carga
+    await Future.delayed(Duration(milliseconds: 500));
 
     try {
       final data = jsonDecode(message);
@@ -122,17 +125,16 @@ class AppData extends ChangeNotifier {
           break;
 
         case "joinedClientWithInfoResponse":
-          print("🔄 Respuesta de joinedClientWithInfoResponse recibida.");
+          print("🔄 joinedClientWithInfoResponse recibido.");
           final userData = await UserStorage.getUserData();
           if (userData != null && userData.containsKey("resultat")) {
             final username = userData["resultat"]["nickname"];
-            requestFriendsList(username); // <- Aquí llamas para que los pida
+            requestFriendsList(username);
           }
           break;
 
         case "amigosOnlineOfflineCompartidos":
           print("🤝 Lista de amigos recibida.");
-          print(data["data"]);
           FriendManager().updateFriends(data["data"]);
           break;
 
@@ -147,6 +149,8 @@ class AppData extends ChangeNotifier {
         case "notification":
           await _handleNotification(data);
           break;
+        case "notificationSent":
+          print("notificationSent");
 
         default:
           print("ℹ️ Tipo de mensaje no manejado: ${data["type"]}");
@@ -164,12 +168,10 @@ class AppData extends ChangeNotifier {
       if (Platform.isWindows || Platform.isLinux) {
         Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
         NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
-      }
-      else {
+      } else {
         NotificationRepository.showTestNotification(data["data"]["message"]);
       }
     } else if (subtype == "friend") {
-      // Notificación de amistad aceptada
       print("✅ Solicitud de amistad aceptada.");
     } else if (subtype == "like") {
       print("👍 Notificación de like recibida.");
@@ -189,5 +191,5 @@ class AppData extends ChangeNotifier {
     });
     sendMessage(message);
   }
-
 }
+

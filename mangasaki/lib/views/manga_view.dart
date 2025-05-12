@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../connection/api_service.dart';
+import '../connection/app_data.dart';
+import '../connection/friendManager.dart';
 import 'login_view.dart';
 
-class MangaView extends StatelessWidget {
+class MangaView extends StatefulWidget {
   final String name;
   final String description;
   final String status;
@@ -27,147 +32,159 @@ class MangaView extends StatelessWidget {
     required this.id,
   }) : super(key: key);
 
-  Widget statusWidget(String status) {
-    Color statusColor;
-    if (status == "On Hiatus") {
-      statusColor = Colors.amber;
-    } else if (status == "Finished") {
-      statusColor = Colors.red;
-    } else if (status == "Publishing") {
-      statusColor = Colors.green;
-    } else {
-      statusColor = Colors.grey;
+  @override
+  _MangaViewState createState() => _MangaViewState();
+}
+
+class _MangaViewState extends State<MangaView> {
+  String? _userMangaStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserMangaStatus();
+  }
+
+  Future<void> _fetchUserMangaStatus() async {
+    try {
+      final usuario = await ApiService().getUserInfo(LoginScreen.username);
+      final userId = usuario["resultat"]["id"];
+      final mangas = await ApiService().getUserMangas(userId);
+
+      final userManga = mangas["resultat"]
+          .firstWhere((m) => m["manga_id"] == widget.id, orElse: () => null);
+
+      setState(() {
+        _userMangaStatus = userManga?["status"];
+      });
+    } catch (e) {
+      print("Failed to fetch user manga status: $e");
     }
-
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      decoration: BoxDecoration(
-        color: statusColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
   }
 
-  Widget GenreWidget(List<String> generos) {
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: generos.map((genero) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 60, 111, 150),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white, width: 2),
-          ),
-          child: Text(
-            genero,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+  Future<void> _handleStatusTap(String newStatus) async {
+    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+    final userId = usuario["resultat"]["id"];
+
+    if (_userMangaStatus == newStatus) {
+      // Already has the status, ask to remove
+      final confirmed = await _showConfirmationDialog(
+        title: "Confirmation",
+        content: "This manga is already marked as '$newStatus'. Do you want to remove this status?",
+      );
+      if (confirmed) {
+        await ApiService().removeMangaStatus(userId, widget.id);
+        setState(() {
+          _userMangaStatus = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Status removed."), backgroundColor: Colors.green),
         );
-      }).toList(),
-    );
+      }
+    } else {
+      // Add or change status
+      await ApiService().mvMangaByStatus(userId, newStatus, widget.id);
+      setState(() {
+        _userMangaStatus = newStatus;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Manga marked as '$newStatus'."),backgroundColor: Colors.green),
+      );
+    }
   }
 
-  Widget starRating(double rating) {
-    int fullStars = rating ~/ 2;
-    double fractionalStar = rating - fullStars * 2;
-    int emptyStars = 5 - fullStars - (fractionalStar >= 1 ? 1 : 0);
-
-    return Container(
-      padding: EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ...List.generate(fullStars, (index) {
-            return Icon(
-              Icons.star,
-              color: Colors.amber,
-              size: 20.0,
-            );
-          }),
-          if (fractionalStar >= 1)
-            Icon(
-              Icons.star_half,
-              color: Colors.amber,
-              size: 20.0,
-            ),
-          ...List.generate(emptyStars, (index) {
-            return Icon(
-              Icons.star_border,
-              color: Colors.amber,
-              size: 20.0,
-            );
-          }),
+  Future<bool> _showConfirmationDialog({required String title, required String content}) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(child: const Text("No"), onPressed: () => Navigator.of(context).pop(false)),
+          TextButton(child: const Text("Yes"), onPressed: () => Navigator.of(context).pop(true)),
         ],
       ),
     );
+    return result ?? false;
   }
 
-  Widget customRatingWidget(int score) {
-    Color borderColor;
-    Color backgroundColor;
-    double fontSize;
+  Color _getIconColor(String status) {
+    return _userMangaStatus == status ? Colors.yellow : Colors.white;
+  }
 
-    if (score >= 1 && score <= 10) {
-      borderColor = Colors.amber;
-      backgroundColor = Colors.black;
-      fontSize = 16;
-    } else if (score >= 11 && score <= 20) {
-      borderColor = Colors.grey;
-      backgroundColor = Colors.black;
-      fontSize = 14;
-    } else if (score >= 21 && score <= 50) {
-      borderColor = Colors.blueAccent;
-      backgroundColor = Colors.white;
-      fontSize = 12;
-    } else if (score >= 51 && score <= 200) {
-      borderColor = Colors.green;
-      backgroundColor = Colors.white;
-      fontSize = 10;
-    } else {
-      borderColor = Colors.black;
-      backgroundColor = Colors.white;
-      fontSize = 8;
-    }
-
-    return Container(
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        "#$ranking",
-        style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: borderColor),
-      ),
-    );
+  void sendRecommendationToFriend({
+    required BuildContext context,
+    required int senderUserId,
+    required String receiverUsername,
+    required int mangaId,
+  }) {
+    final message = {
+      'type': 'recommendation_notification',
+      'sender_user_id': senderUserId,
+      'receiver_username': receiverUsername,
+      'manga_id': mangaId,
+    };
+    final jsonMessage = jsonEncode(message);
+    final appData = Provider.of<AppData>(context, listen: false);
+    appData.sendMessage(jsonMessage);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200], // Fondo gris claro
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            icon: Icon(Icons.share, color: Colors.white),
+            onPressed: () async {
+              try {
+                final friendManager = Provider.of<FriendManager>(context, listen: false);
+                final friends = friendManager.allFriends;
+                final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                final fromId = usuario["resultat"]["id"];
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Please, choose a friend to share this manga'),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: friends.length,
+                          itemBuilder: (context, index) {
+                            final friend = friends[index];
+                            final username = friend['name'];
+                            return ListTile(
+                              title: Text(username),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                sendRecommendationToFriend(
+                                  context: context,
+                                  senderUserId: fromId,
+                                  receiverUsername: username,
+                                  mangaId: widget.id,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Recommendation sent to $username'),backgroundColor: Colors.green),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}'),backgroundColor: Colors.red),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () async {
@@ -194,7 +211,7 @@ class MangaView extends StatelessWidget {
                                 ApiService().addInGallery(
                                   LoginScreen.username,
                                   collection,
-                                  id,
+                                  widget.id,
                                 );
                               },
                             );
@@ -212,56 +229,20 @@ class MangaView extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.menu_book, color: Colors.white),
-            onPressed: () async {
-              try {
-
-
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
+            icon: Icon(Icons.menu_book, color: _getIconColor('READING')),
+            onPressed: () => _handleStatusTap('READING'),
           ),
           IconButton(
-            icon: const Icon(Icons.hourglass_empty, color: Colors.white),
-            onPressed: () async {
-              try {
-
-
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
+            icon: Icon(Icons.hourglass_empty, color: _getIconColor('PENDING')),
+            onPressed: () => _handleStatusTap('PENDING'),
           ),
           IconButton(
-            icon: const Icon(Icons.done_all, color: Colors.white),
-            onPressed: () async {
-              try {
-
-
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
+            icon: Icon(Icons.done_all, color: _getIconColor('COMPLETED')),
+            onPressed: () => _handleStatusTap('COMPLETED'),
           ),
           IconButton(
-            icon: const Icon(Icons.cancel, color: Colors.white),
-            onPressed: () async {
-              try {
-
-
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
-                );
-              }
-            },
+            icon: Icon(Icons.cancel, color: _getIconColor('ABANDONED')),
+            onPressed: () => _handleStatusTap('ABANDONED'),
           ),
         ],
       ),
@@ -270,32 +251,21 @@ class MangaView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título para "Manga Info"
-            Text(
-              "Manga Info",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            // Contenedor de "Manga Info"
+            Text("Manga Info", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8.0,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8.0, offset: Offset(0, 4))],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.network(
-                    imageUrl,
-                    width: MediaQuery.of(context).size.width < 600 ? 100 : 150,
-                    height: MediaQuery.of(context).size.width < 600 ? 150 : 225,
+                    widget.imageUrl,
+                    width: 120,
+                    height: 180,
                     fit: BoxFit.cover,
                   ),
                   const SizedBox(width: 16),
@@ -303,22 +273,20 @@ class MangaView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber),
-                        ),
+                        Text(widget.name,
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.amber)),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            starRating(score),
+                            starRating(widget.score),
                             const SizedBox(width: 8),
-                            statusWidget(status),
+                            statusWidget(widget.status),
                           ],
                         ),
                         const SizedBox(height: 8),
-                        customRatingWidget(ranking),
+                        customRatingWidget(widget.ranking),
                         const SizedBox(height: 8),
-                        GenreWidget(genres),
+                        GenreWidget(widget.genres),
                       ],
                     ),
                   ),
@@ -326,63 +294,131 @@ class MangaView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
-
-            // Título para "synopsis"
-            Text(
-              "Synopsis",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            // Contenedor de "Description"
+            Text("Synopsis", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
             Container(
               padding: const EdgeInsets.all(16.0),
               margin: const EdgeInsets.only(top: 16.0),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8.0,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8.0, offset: Offset(0, 4))],
               ),
-              child: Text(
-                description,
-                style: TextStyle(color: Colors.black87),
-              ),
+              child: Text(widget.description, style: TextStyle(color: Colors.black87)),
             ),
-
             const SizedBox(height: 16),
-
-            if (chapters > 0) ...[
+            if (widget.chapters > 0) ...[
               Text("Chapters", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
               Divider(color: Colors.black, thickness: 2),
-              Text("Total Chapters: $chapters", style: TextStyle(fontSize: 16, color: Colors.black)),
+              Text("Total Chapters: ${widget.chapters}", style: TextStyle(fontSize: 16, color: Colors.black)),
               const SizedBox(height: 8),
-            ],
-            if (chapters <= 0)
+              ListView.separated(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: widget.chapters,
+                separatorBuilder: (context, index) => Divider(color: Colors.grey),
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text("${widget.name} - Chapter ${index + 1}",
+                        style: TextStyle(color: Colors.black)),
+                  );
+                },
+              ),
+            ] else
               const Center(
                 child: Text(
                   "Chapters are not available at the moment.",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: chapters,
-                separatorBuilder: (context, index) => Divider(color: Colors.grey),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text("$name - Chapter ${index + 1}", style: TextStyle(color: Colors.black)),
-                  );
-                },
               ),
           ],
         ),
       ),
+    );
+  }
+
+  // Reutilizar widgets auxiliares
+  Widget statusWidget(String status) {
+    final color = {
+      "On Hiatus": Colors.amber,
+      "Finished": Colors.red,
+      "Publishing": Colors.green
+    }[status] ?? Colors.grey;
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+      child: Text(status, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget starRating(double rating) {
+    int fullStars = rating ~/ 2;
+    double fractionalStar = rating - fullStars * 2;
+    int emptyStars = 5 - fullStars - (fractionalStar >= 1 ? 1 : 0);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...List.generate(fullStars, (_) => Icon(Icons.star, color: Colors.amber, size: 20)),
+        if (fractionalStar >= 1) Icon(Icons.star_half, color: Colors.amber, size: 20),
+        ...List.generate(emptyStars, (_) => Icon(Icons.star_border, color: Colors.amber, size: 20)),
+      ],
+    );
+  }
+
+  Widget customRatingWidget(int score) {
+    Color borderColor;
+    Color backgroundColor;
+    double fontSize;
+
+    if (score <= 10) {
+      borderColor = Colors.amber;
+      backgroundColor = Colors.black;
+      fontSize = 16;
+    } else if (score <= 20) {
+      borderColor = Colors.grey;
+      backgroundColor = Colors.black;
+      fontSize = 14;
+    } else if (score <= 50) {
+      borderColor = Colors.blueAccent;
+      backgroundColor = Colors.white;
+      fontSize = 12;
+    } else if (score <= 200) {
+      borderColor = Colors.green;
+      backgroundColor = Colors.white;
+      fontSize = 10;
+    } else {
+      borderColor = Colors.black;
+      backgroundColor = Colors.white;
+      fontSize = 8;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        border: Border.all(color: borderColor, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text("#$score", style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: borderColor)),
+    );
+  }
+
+  Widget GenreWidget(List<String> genres) {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: genres.map((genre) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 60, 111, 150),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 2),
+          ),
+          child: Text(genre, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        );
+      }).toList(),
     );
   }
 }

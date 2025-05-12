@@ -27,7 +27,37 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
   void initState() {
     super.initState();
     fetchCollections();
+    fetchBannerImage();
   }
+
+  Future<void> fetchBannerImage() async {
+    final nickname = widget.nickname;
+    final response = await http.get(Uri.parse(
+        "https://mangasaki.ieti.site/api/user/getUserBanner/$nickname"));
+    if (response.statusCode == 200) {
+      if (response.headers['content-type']?.contains('image') ?? false) {
+        String base64Image = base64Encode(response.bodyBytes);
+        setState(() {
+          bannerImageUrl = "data:image/jpeg;base64,$base64Image";
+        });
+      } else if (response.headers['content-type']
+          ?.contains('application/json') ??
+          false) {
+        try {
+          final decodedResponse = jsonDecode(response.body);
+          setState(() {
+            bannerImageUrl = decodedResponse['bannerUrl'];
+          });
+        } catch (e) {
+          print("Error parsing banner image response: $e");
+        }
+      }
+    } else {
+      setState(() {
+        bannerImageUrl = null;
+      });
+    }
+    }
 
   Future<void> fetchCollections() async {
     final galleryData = await ApiService().getGallery(widget.nickname);
@@ -273,7 +303,7 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                                         builder: (context) => DetailsProfileFriendView(
                                                           collectionName: item["name"],
                                                           id: item["id"],
-                                                          userId: fromId,
+                                                          username: nickname,
                                                         ),
                                                       ),
                                                     );
