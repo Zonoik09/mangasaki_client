@@ -725,4 +725,27 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> deleteNotification(int notificationId, String type) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/deleteNotification');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "type": type,
+          "notificationId": notificationId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
 }

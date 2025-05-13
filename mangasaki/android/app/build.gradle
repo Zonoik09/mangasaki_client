@@ -6,15 +6,15 @@ plugins {
 }
 
 // Asegurémonos de cargar las propiedades al principio de la configuración
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file("key.properties")
+//def keystoreProperties = new Properties()
+//def keystorePropertiesFile = rootProject.file("key.properties")
 
 // Verificamos si el archivo key.properties existe
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-} else {
-    throw new GradleException("No se encontró el archivo key.properties. Asegúrate de que esté en la raíz del proyecto.")
-}
+//if (keystorePropertiesFile.exists()) {
+//    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+//} else {
+//    throw new GradleException("No se encontró el archivo key.properties. Asegúrate de que esté en la raíz del proyecto.")
+//}
 
 android {
     namespace = "com.zonoik.mangasaki"
@@ -43,10 +43,10 @@ android {
     signingConfigs {
         release {
             // Utilizamos las propiedades cargadas para la firma
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
+//            keyAlias keystoreProperties['keyAlias']
+//            keyPassword keystoreProperties['keyPassword']
+//            storeFile file(keystoreProperties['storeFile'])
+//            storePassword keystoreProperties['storePassword']
         }
     }
 
