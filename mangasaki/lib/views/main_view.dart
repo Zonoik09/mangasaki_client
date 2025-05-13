@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -10,8 +11,10 @@ import 'package:mangasaki/views/social_view.dart';
 import 'package:mangasaki/views/top_mangas_view.dart';
 import 'package:mangasaki/widgets/widget_home_view.dart';
 import 'package:mangasaki/views/login_view.dart';
+import 'package:provider/provider.dart';
 
 import '../connection/NotificationRepository.dart';
+import '../connection/app_data.dart';
 import '../connection/userStorage.dart';
 import 'camera_screen.dart';
 import 'notification_view.dart';
@@ -355,6 +358,7 @@ class _MainViewState extends State<MainView> {
                         context,
                         MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
+                      disconnectWebsocket(context);
                     },
                   ),
                 ],
@@ -435,6 +439,19 @@ class _MainViewState extends State<MainView> {
   }
 }
 
-//NotificationRepository.showTestNotification();
-//NotificationRepository.showMessageStyleNotification();
-// Esto es para llamar a las notificaciones
+// Esto es para desconectarse
+
+void disconnectWebsocket(BuildContext context) {
+  // Crear un mapa con los datos del mensaje
+  Map<String, dynamic> messageData = {
+    "type": "disconnectRequest",
+    "username": LoginScreen.username,
+  };
+
+  // Convertir el mapa a una cadena JSON
+  String messageJson = jsonEncode(messageData);
+
+  final appData = Provider.of<AppData>(context, listen: false);
+  AppData.disconnectedForUser = true;
+  appData.sendMessage(messageJson);
+}

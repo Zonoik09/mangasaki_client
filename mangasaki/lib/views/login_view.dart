@@ -215,6 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
               final appData = Provider.of<AppData>(context, listen: false);
               // Intentar establecer la conexión WebSocket
               appData.connectToWebSocket();
+              AppData.disconnectedForUser = false;
             } catch (e) {
               print('Error al obtener y guardar la información del usuario: $e');
             }

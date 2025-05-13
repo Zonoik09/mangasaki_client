@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:mangasaki/views/profileFriend_view.dart';
 import 'package:mangasaki/views/profile_view.dart';
 import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
@@ -79,6 +80,8 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
     return mangasData;
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,7 +97,7 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const MainView(selectedIndex: 1),
+                builder: (context) => ProfileFriendView(nickname: widget.username,),
               ),
             );
           },

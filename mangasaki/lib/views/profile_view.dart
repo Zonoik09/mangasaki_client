@@ -152,12 +152,6 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // === Profile Section ===
-                      const Text(
-                        "Profile",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -174,6 +168,13 @@ class _ProfileViewState extends State<ProfileView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const Text(
+                              "Profile",
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+
+                            const Divider(),
+                            const SizedBox(height: 12),
                             // Banner
                             Stack(
                               children: [
@@ -286,6 +287,7 @@ class _ProfileViewState extends State<ProfileView> {
                                 // Delete photo button with icon only for mobile
                                 _iconCircleButton(Icons.delete, Colors.red, () async {
                                   await ApiService().changeProfilePicture(nickname, '', context);
+                                  fetchUserData();
                                 },),
                               ],
                             ),
@@ -296,12 +298,6 @@ class _ProfileViewState extends State<ProfileView> {
                       const SizedBox(height: 40),
 
                       // === Collections Section ===
-                      const Text(
-                        "Collections",
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -320,7 +316,7 @@ class _ProfileViewState extends State<ProfileView> {
                               children: [
                                 const Text("Your Collections",
                                     style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 24,
                                         fontWeight: FontWeight.w600)),
                                 IconButton(
                                   icon: const Icon(Icons.add),

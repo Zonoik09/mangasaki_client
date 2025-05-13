@@ -8,6 +8,7 @@ import 'detailscollectionsFriend_view.dart';
 import 'dart:typed_data';
 
 import 'login_view.dart';
+import 'main_view.dart';
 
 class ProfileFriendView extends StatefulWidget {
   final String nickname;
@@ -41,7 +42,7 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
           bannerImageUrl = "data:image/jpeg;base64,$base64Image";
         });
       } else if (response.headers['content-type']
-          ?.contains('application/json') ??
+              ?.contains('application/json') ??
           false) {
         try {
           final decodedResponse = jsonDecode(response.body);
@@ -57,17 +58,16 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
         bannerImageUrl = null;
       });
     }
-    }
+  }
 
   Future<void> fetchCollections() async {
     final galleryData = await ApiService().getGallery(widget.nickname);
     if (galleryData['resultat'] != null) {
       setState(() {
-        collections =
-            List<Map<String, dynamic>>.from(galleryData['resultat']);
+        collections = List<Map<String, dynamic>>.from(galleryData['resultat']);
       });
     }
-    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,18 +76,27 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
 
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Friend Profile'),
+          backgroundColor: Color.fromARGB(255, 60, 111, 150),
+          title: Text('Friend Profile', style: const TextStyle(color: Colors.white)),
+          iconTheme: const IconThemeData(color: Colors.white),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainView(selectedIndex: 2,),
+                ),
+               );
             },
           ),
         ),
         backgroundColor: Colors.grey[200],
         body: Center(
           child: SizedBox(
-            width: isDesktop ? MediaQuery.of(context).size.width * 0.6 : MediaQuery.of(context).size.width * 1,
+            width: isDesktop
+                ? MediaQuery.of(context).size.width * 0.6
+                : MediaQuery.of(context).size.width * 1,
             child: FutureBuilder<Map<String, dynamic>?>(
               future: UserStorage.getUserData(),
               builder: (context, snapshot) {
@@ -113,10 +122,6 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // === Profile Section ===
-                      const Text(
-                        "Profile",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
                       const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -134,6 +139,14 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const Text(
+                              "Profile",
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+
+                            const Divider(),
+                            const SizedBox(height: 12),
+
                             // Banner
                             Stack(
                               children: [
@@ -144,16 +157,19 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                     height: isDesktop ? 220 : 140,
                                     color: Colors.grey.shade300,
                                     child: bannerImageUrl != null
-                                        ? (bannerImageUrl!.startsWith("data:image/")
-                                        ? Image.memory(
-                                      base64Decode(bannerImageUrl!.split(",")[1]),
-                                      fit: BoxFit.cover,
-                                    )
-                                        : Image.network(
-                                      bannerImageUrl!,
-                                      fit: BoxFit.cover,
-                                    ))
-                                        : const Center(child: Text("No Banner Available")),
+                                        ? (bannerImageUrl!
+                                                .startsWith("data:image/")
+                                            ? Image.memory(
+                                                base64Decode(bannerImageUrl!
+                                                    .split(",")[1]),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.network(
+                                                bannerImageUrl!,
+                                                fit: BoxFit.cover,
+                                              ))
+                                        : const Center(
+                                            child: Text("No Banner Available")),
                                   ),
                                 ),
                               ],
@@ -181,7 +197,8 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                 // Nickname & Likes
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         nickname,
@@ -192,15 +209,18 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                       ),
                                       const SizedBox(height: 8),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 6),
                                         decoration: BoxDecoration(
                                           color: Colors.pink.shade50,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.favorite, color: Colors.pink, size: 16),
+                                            const Icon(Icons.favorite,
+                                                color: Colors.pink, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
                                               "$likes",
@@ -224,13 +244,6 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
 
                       const SizedBox(height: 40),
 
-                      // === Collections Section ===
-                      const Text(
-                        "Collections",
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -249,7 +262,7 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                               children: [
                                 Text("Collections of $nickname",
                                     style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 24,
                                         fontWeight: FontWeight.w600)),
                               ],
                             ),
@@ -276,32 +289,45 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                     itemBuilder: (context, index) {
                                       final item = collections[index];
                                       return FutureBuilder<Uint8List>(
-                                        future: ApiService().getGalleryImage(item["id"]),
+                                        future: ApiService()
+                                            .getGalleryImage(item["id"]),
                                         builder: (context, snapshot) {
-                                          if (snapshot.connectionState == ConnectionState.waiting) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
                                             return const CircularProgressIndicator();
                                           } else if (snapshot.hasError) {
                                             return const Icon(Icons.error);
                                           } else if (snapshot.hasData) {
-                                            return FutureBuilder<Map<String, dynamic>>(
-                                              future: ApiService().getUserInfo(LoginScreen.username),
+                                            return FutureBuilder<
+                                                Map<String, dynamic>>(
+                                              future: ApiService().getUserInfo(
+                                                  LoginScreen.username),
                                               builder: (context, userSnapshot) {
-                                                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                                                if (userSnapshot
+                                                        .connectionState ==
+                                                    ConnectionState.waiting) {
                                                   return const CircularProgressIndicator();
-                                                } else if (userSnapshot.hasError || !userSnapshot.hasData) {
-                                                  return const Icon(Icons.error);
+                                                } else if (userSnapshot
+                                                        .hasError ||
+                                                    !userSnapshot.hasData) {
+                                                  return const Icon(
+                                                      Icons.error);
                                                 }
-                                                final fromId = userSnapshot.data!["resultat"]["id"];
+                                                final fromId = userSnapshot
+                                                    .data!["resultat"]["id"];
                                                 return CollectionItemCard(
-                                                  title: item["name"] ?? 'No Title',
+                                                  title: item["name"] ??
+                                                      'No Title',
                                                   imagePath: snapshot.data!,
                                                   id: item["id"],
                                                   onTap: () {
                                                     Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
-                                                        builder: (context) => DetailsProfileFriendView(
-                                                          collectionName: item["name"],
+                                                        builder: (context) =>
+                                                            DetailsProfileFriendView(
+                                                          collectionName:
+                                                              item["name"],
                                                           id: item["id"],
                                                           username: nickname,
                                                         ),
@@ -327,7 +353,6 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
               },
             ),
           ),
-        )
-    );
+        ));
   }
 }

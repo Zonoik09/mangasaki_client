@@ -19,7 +19,7 @@ class AppData extends ChangeNotifier {
   String? socketId;
   bool isConnected = false;
   ConnectionStatus connectionStatus = ConnectionStatus.disconnected;
-
+  static bool disconnectedForUser = false;
   int _reconnectAttempts = 0;
   final int _maxReconnectAttempts = 5;
 
@@ -69,6 +69,12 @@ class AppData extends ChangeNotifier {
     isConnected = false;
     notifyListeners();
 
+    // 👉 Verifica si la desconexión fue iniciada por el usuario
+    if (disconnectedForUser) {
+      print("🛑 Desconectado manualmente por el usuario. No se intentará reconectar.");
+      return;
+    }
+
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       print("❌ Máximo de intentos de reconexión alcanzado. Deteniendo intentos.");
       return;
@@ -83,6 +89,7 @@ class AppData extends ChangeNotifier {
       connectToWebSocket();
     });
   }
+
 
   void sendMessage(String message) {
     if (_channel == null || connectionStatus != ConnectionStatus.connected) {
