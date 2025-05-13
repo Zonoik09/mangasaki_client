@@ -51,16 +51,32 @@ class _MangaViewState extends State<MangaView> {
       final userId = usuario["resultat"]["id"];
       final mangas = await ApiService().getUserMangas(userId);
 
-      final userManga = mangas["resultat"]
-          .firstWhere((m) => m["manga_id"] == widget.id, orElse: () => null);
+      // Obtén los mangas clasificados por estado
+      final mangaStatus = mangas["data"];
 
-      setState(() {
-        _userMangaStatus = userManga?["status"];
-      });
+      // Revisa en qué estado se encuentra el manga
+      if (mangaStatus["READING"]?.contains(widget.id) ?? false) {
+        setState(() {
+          _userMangaStatus = 'READING';
+        });
+      } else if (mangaStatus["COMPLETED"]?.contains(widget.id) ?? false) {
+        setState(() {
+          _userMangaStatus = 'COMPLETED';
+        });
+      } else if (mangaStatus["PENDING"]?.contains(widget.id) ?? false) {
+        setState(() {
+          _userMangaStatus = 'PENDING';
+        });
+      } else if (mangaStatus["ABANDONED"]?.contains(widget.id) ?? false) {
+        setState(() {
+          _userMangaStatus = 'ABANDONED';
+        });
+      }
     } catch (e) {
       print("Failed to fetch user manga status: $e");
     }
   }
+
 
   Future<void> _handleStatusTap(String newStatus) async {
     final usuario = await ApiService().getUserInfo(LoginScreen.username);
