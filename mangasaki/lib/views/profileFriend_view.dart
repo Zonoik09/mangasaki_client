@@ -23,6 +23,8 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
   String? profileImageUrl;
   String? bannerImageUrl;
   List<Map<String, dynamic>> collections = [];
+  int totalLikes = 0;
+
 
   @override
   void initState() {
@@ -63,11 +65,21 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
   Future<void> fetchCollections() async {
     final galleryData = await ApiService().getGallery(widget.nickname);
     if (galleryData['resultat'] != null) {
+      final fetchedCollections = List<Map<String, dynamic>>.from(galleryData['resultat']);
+
+      // Sumar likes totales
+      int likes = 0;
+      for (var collection in fetchedCollections) {
+        likes += (collection['likes'] ?? 0) as int;
+      }
+
       setState(() {
-        collections = List<Map<String, dynamic>>.from(galleryData['resultat']);
+        collections = fetchedCollections;
+        totalLikes = likes;
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +123,6 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                 }
 
                 final nickname = widget.nickname;
-                final likes = 0;
 
                 profileImageUrl =
                     "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
@@ -223,7 +234,7 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                                 color: Colors.pink, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
-                                              "$likes",
+                                              "$totalLikes",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.pink,
@@ -329,11 +340,11 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                                           collectionName:
                                                               item["name"],
                                                           id: item["id"],
-                                                          username: nickname,
+                                                          username: nickname, likes: item["likes"],
                                                         ),
                                                       ),
                                                     );
-                                                  },
+                                                  }, likes: item["likes"],
                                                 );
                                               },
                                             );

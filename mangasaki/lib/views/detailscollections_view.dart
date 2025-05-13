@@ -3,17 +3,21 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mangasaki/views/profile_view.dart';
+import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
+import '../connection/app_data.dart';
 import '../widgets/MangaCollection_widget.dart';
 import 'dart:typed_data';
 
+import 'login_view.dart';
 import 'main_view.dart';
 
 class DetailsProfileView extends StatefulWidget {
   final String collectionName;
   final int id;
+  final int likes;
 
-  DetailsProfileView({super.key, required this.collectionName, required this.id});
+  const DetailsProfileView({super.key, required this.collectionName, required this.id, required this.likes});
 
   @override
   _DetailsProfileViewState createState() => _DetailsProfileViewState();
@@ -23,7 +27,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
   late Future<List<Map<String, dynamic>>> mangasFuture;
   late Future<Uint8List> imageFuture;
 
-  int likesCount = 67;  // Variable local para los likes simulados
   bool hasLiked = false; // Para simular si el usuario ya ha dado like
 
   final Color headerColor = const Color.fromARGB(255, 60, 111, 150);
@@ -161,6 +164,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                                     await ApiService().changeGalleryPicture(widget.id, "", context);
                                     setState(() {
                                       imageFuture = ApiService().getGalleryImage(widget.id);
+                                      checkIfLiked();
                                     });
                                   },
                                   icon: const Icon(Icons.delete_forever, color: Colors.white),
@@ -192,15 +196,24 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             const SizedBox(height: 8),
                             // Contador de likes con botón de like
                             GestureDetector(
-                              onTap: () {
+                              onTap: () async {
                                 setState(() {
-                                  if (hasLiked) {
-                                    likesCount--;
-                                  } else {
-                                    likesCount++;
-                                  }
                                   hasLiked = !hasLiked;
                                 });
+
+                                if (hasLiked) {
+                                  try {
+                                    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                                    final fromId = usuario["resultat"]["id"];
+                                    sendLikeNotificationViaSocket(
+                                      senderUserId: fromId,
+                                      receiverUsername: LoginScreen.username,
+                                      galleryId: widget.id,
+                                    );
+                                  } catch (e) {
+                                    print("Error al enviar notificación de like: $e");
+                                  }
+                                }
                               },
                               child: Row(
                                 children: [
@@ -211,7 +224,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    "$likesCount likes",
+                                    "${widget.likes} likes",
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ],
@@ -354,5 +367,37 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
       });
     }
   }
+
+  void sendLikeNotificationViaSocket({
+    required int senderUserId,
+    required String receiverUsername,
+    required int galleryId,
+  }) {
+    final message = {
+      'type': 'like_notification',
+      'sender_user_id': senderUserId,
+      'receiver_username': receiverUsername,
+      'gallery_id': galleryId,
+    };
+    final jsonMessage = jsonEncode(message);
+    final appData = Provider.of<AppData>(context, listen: false);
+    appData.sendMessage(jsonMessage);
+  }
+
+  Future<void> checkIfLiked() async {
+    try {
+      final usuario = await ApiService().getUserInfo(LoginScreen.username);
+      final fromId = usuario["resultat"]["id"];
+
+      final response = await ApiService().isLiked(fromId, widget.id);
+      setState(() {
+        hasLiked = response["liked"] ?? false;
+      });
+    } catch (e) {
+      print("Error verificando si dio like: $e");
+    }
+  }
+
+
 }
 

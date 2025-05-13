@@ -16,12 +16,14 @@ class DetailsProfileFriendView extends StatefulWidget {
   final String collectionName;
   final int id;
   final String username;
+  final int likes;
 
   DetailsProfileFriendView({
     super.key,
     required this.collectionName,
     required this.id,
-    required this.username
+    required this.username,
+    required this.likes
   });
 
   @override
@@ -33,7 +35,6 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
   late Future<List<Map<String, dynamic>>> mangasFuture;
   late Future<Uint8List> imageFuture;
 
-  int likesCount = 0;
   bool hasLiked = false;
 
   final Color headerColor = const Color.fromARGB(255, 60, 111, 150);
@@ -176,9 +177,9 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
                               onTap: () async {
                                 setState(() {
                                   if (hasLiked) {
-                                    likesCount--;
+                                    //likesCount--;
                                   } else {
-                                    likesCount++;
+                                    //likesCount++;
                                   }
                                   hasLiked = !hasLiked;
                                 });
@@ -209,7 +210,7 @@ class _DetailsProfileFriendViewState extends State<DetailsProfileFriendView> {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    "$likesCount likes",
+                                    "${widget.likes} likes",
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ],

@@ -748,4 +748,26 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> isLiked(int userId, int galleryId) async {
+    final url = Uri.parse(
+        'https://mangasaki.ieti.site/api/gallery/isLiked/$galleryId/$userId'
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
 }

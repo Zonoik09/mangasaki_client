@@ -21,6 +21,8 @@ class _ProfileViewState extends State<ProfileView> {
   String? bannerImageUrl;
   String? nickname;
   List<Map<String, dynamic>> collections = [];
+  int totalLikes = 0;
+
 
   @override
   void initState() {
@@ -44,9 +46,17 @@ class _ProfileViewState extends State<ProfileView> {
     if (nickname != null) {
       final galleryData = await ApiService().getGallery(nickname!);
       if (galleryData['resultat'] != null) {
+        final fetchedCollections = List<Map<String, dynamic>>.from(galleryData['resultat']);
+
+        // Sumar likes totales
+        int likes = 0;
+        for (var collection in fetchedCollections) {
+          likes += (collection['likes'] ?? 0) as int;
+        }
+
         setState(() {
-          collections =
-              List<Map<String, dynamic>>.from(galleryData['resultat']);
+          collections = fetchedCollections;
+          totalLikes = likes;
         });
       }
     }
@@ -115,8 +125,6 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -142,7 +150,6 @@ class _ProfileViewState extends State<ProfileView> {
 
                 final userData = snapshot.data!;
                 final nickname = userData['resultat']['nickname'] ?? 'User';
-                final likes = userData['likes'] ?? 0;
 
                 profileImageUrl =
                     "https://mangasaki.ieti.site/api/user/getUserImage/$nickname";
@@ -257,7 +264,7 @@ class _ProfileViewState extends State<ProfileView> {
                                             const Icon(Icons.favorite, color: Colors.pink, size: 16),
                                             const SizedBox(width: 6),
                                             Text(
-                                              "$likes",
+                                              "$totalLikes",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.pink,
@@ -419,11 +426,11 @@ class _ProfileViewState extends State<ProfileView> {
                                                         DetailsProfileView(
                                                       collectionName:
                                                           item["name"],
-                                                      id: item["id"],
+                                                      id: item["id"], likes: item["likes"],
                                                     ),
                                                   ),
                                                 );
-                                              },
+                                              }, likes: item["likes"],
                                             );
                                           } else {
                                             return const Icon(Icons.error);
