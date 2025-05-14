@@ -27,29 +27,27 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
   late Future<List<Map<String, dynamic>>> mangasFuture;
   late Future<Uint8List> imageFuture;
 
-  bool hasLiked = false; // Para simular si el usuario ya ha dado like
+  bool hasLiked = false;
+  int displayedLikes = 0;
 
   final Color headerColor = const Color.fromARGB(255, 60, 111, 150);
-
   final List<int> mangaList = [];
 
   @override
   void initState() {
     super.initState();
-    // Llamada a la función que obtiene los mangas de forma dinámica
     mangasFuture = fetchMangas();
     imageFuture = ApiService().getGalleryImage(widget.id);
+    displayedLikes = widget.likes;
+    checkIfLiked();
   }
 
-  // Agrega esta función para refrescar la lista de mangas en DetailsProfileView
   void refreshMangaList() {
     setState(() {
       mangasFuture = fetchMangas();
     });
   }
 
-
-  // Esta función se encarga de llamar a los mangas de forma secuencial
   Future<List<Map<String, dynamic>>> fetchMangas() async {
     List<Map<String, dynamic>> mangasData = [];
     int index = 0;
@@ -57,9 +55,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
     Map<String, dynamic> mangaList = await ApiService().getMangaGallery(widget.id);
     List resultat = mangaList['resultat'] ?? [];
 
-    List<int> mangaIds = resultat
-        .map<int>((item) => item['manga_id'] as int)
-        .toList();
+    List<int> mangaIds = resultat.map<int>((item) => item['manga_id'] as int).toList();
 
     while (index < mangaIds.length) {
       List<int> currentBatch = mangaIds.sublist(index,
@@ -76,8 +72,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
 
     return mangasData;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +96,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabecera adaptativa
             Container(
               width: double.infinity,
               color: headerColor,
@@ -183,7 +176,7 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                widget.collectionName ?? "Sin nombre",
+                                widget.collectionName,
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
@@ -194,37 +187,37 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            // Contador de likes con botón de like
                             GestureDetector(
                               onTap: () async {
-                                setState(() {
-                                  hasLiked = !hasLiked;
-                                });
+                                if (hasLiked) return;
 
-                                if (hasLiked) {
-                                  try {
-                                    final usuario = await ApiService().getUserInfo(LoginScreen.username);
-                                    final fromId = usuario["resultat"]["id"];
-                                    sendLikeNotificationViaSocket(
-                                      senderUserId: fromId,
-                                      receiverUsername: LoginScreen.username,
-                                      galleryId: widget.id,
-                                    );
-                                  } catch (e) {
-                                    print("Error al enviar notificación de like: $e");
-                                  }
+                                try {
+                                  final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                                  final fromId = usuario["resultat"]["id"];
+                                  sendLikeNotificationViaSocket(
+                                    senderUserId: fromId,
+                                    receiverUsername: LoginScreen.username,
+                                    galleryId: widget.id,
+                                  );
+
+                                  setState(() {
+                                    hasLiked = true;
+                                    displayedLikes += 1;
+                                  });
+                                } catch (e) {
+                                  print("Error al enviar notificación de like: $e");
                                 }
                               },
                               child: Row(
                                 children: [
                                   Icon(
                                     hasLiked ? Icons.favorite : Icons.favorite_border,
-                                    color: hasLiked ? Colors.red : Colors.white,
+                                    color: hasLiked ? Colors.red : Colors.redAccent,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    "${widget.likes} likes",
+                                    "$displayedLikes likes",
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ],
@@ -289,7 +282,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
               child: const Divider(thickness: 1.2, color: Colors.white),
             ),
             const SizedBox(height: 16),
-            // FutureBuilder para manejar múltiples mangas de forma dinámica
             FutureBuilder<List<Map<String, dynamic>>>(
               future: mangasFuture,
               builder: (context, snapshot) {
@@ -323,7 +315,6 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
                             id: manga["id"],
                             galleryName: widget.collectionName,
                             refreshMangaList: refreshMangaList,
-
                           )
                               : MangaCollectionWidget(
                             title: manga['title'],
@@ -397,7 +388,4 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
       print("Error verificando si dio like: $e");
     }
   }
-
-
 }
-

@@ -339,8 +339,8 @@ class _ProfileFriendViewState extends State<ProfileFriendView> {
                                                             DetailsProfileFriendView(
                                                           collectionName:
                                                               item["name"],
-                                                          id: item["id"],
-                                                          username: nickname, likes: item["likes"],
+                                                              galleryId: item["id"],
+                                                              ownerUsername: nickname, likes: item["likes"],
                                                         ),
                                                       ),
                                                     );
