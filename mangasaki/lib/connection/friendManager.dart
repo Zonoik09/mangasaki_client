@@ -19,11 +19,13 @@ class FriendManager extends ChangeNotifier {
         'id': f['id'],
         'name': f['nickname'],
         'online': true,
+        'friendship_id': f["friendship_id"]
       }),
       ...offline.map((f) => {
         'id': f['id'],
         'name': f['nickname'],
         'online': false,
+        'friendship_id': f["friendship_id"]
       }),
     ];
 

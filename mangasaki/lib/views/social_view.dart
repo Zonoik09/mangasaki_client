@@ -25,7 +25,6 @@ class _SocialViewState extends State<SocialView> {
   late List<Map<String, dynamic>> recommendations = [];
   bool isLoadingRecommendations = true;
 
-
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
@@ -51,7 +50,8 @@ class _SocialViewState extends State<SocialView> {
       final fromId = usuario["resultat"]["id"];
 
       // Obtener los IDs de manga recomendados
-      final List<int> mangaIds = await ApiService().getRecommendedMangas(fromId);
+      final List<int> mangaIds =
+          await ApiService().getRecommendedMangas(fromId);
 
       List<Map<String, dynamic>> fetchedMangas = [];
 
@@ -126,7 +126,6 @@ class _SocialViewState extends State<SocialView> {
     );
   }
 
-
   void _getFriends() {
     // Crear un mapa con los datos del mensaje
     Map<String, dynamic> messageData = {
@@ -138,7 +137,6 @@ class _SocialViewState extends State<SocialView> {
     String messageJson = jsonEncode(messageData);
     final appData = Provider.of<AppData>(context, listen: false);
     appData.sendMessage(messageJson);
-
   }
 
   @override
@@ -215,80 +213,87 @@ class _SocialViewState extends State<SocialView> {
                 isLoadingRecommendations
                     ? Center(child: CircularProgressIndicator())
                     : Platform.isWindows || Platform.isLinux
-                    ? Column(
-                  children: [
-                    SizedBox(
-                      height: 320,
-                      child: SingleChildScrollView(
-                        controller: _scrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: recommendations.map((manga) {
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: MangaWidgetRecomendation(
-                                title: manga['title'],
-                                imageUrl: manga['imageUrl'],
-                                status: manga['status'],
-                                score: manga['score'].toDouble(),
-                                rank: manga['rank'],
-                                description: manga['description'],
-                                chapters: manga['chapters'],
-                                genres: List<String>.from(manga['genres']),
-                                type: manga['type'],
-                                id: manga["id"],
+                        ? Column(
+                            children: [
+                              SizedBox(
+                                height: 320,
+                                child: SingleChildScrollView(
+                                  controller: _scrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: recommendations.map((manga) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 12),
+                                        child: MangaWidgetRecomendation(
+                                          title: manga['title'],
+                                          imageUrl: manga['imageUrl'],
+                                          status: manga['status'],
+                                          score: manga['score'].toDouble(),
+                                          rank: manga['rank'],
+                                          description: manga['description'],
+                                          chapters: manga['chapters'],
+                                          genres: List<String>.from(
+                                              manga['genres']),
+                                          type: manga['type'],
+                                          id: manga["id"],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-                          padding: EdgeInsets.all(4),
-                          constraints: BoxConstraints(),
-                          onPressed: () => _scrollRecommendations(-300),
-                        ),
-                        const SizedBox(width: 16),
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                          padding: EdgeInsets.all(4),
-                          constraints: BoxConstraints(),
-                          onPressed: () => _scrollRecommendations(300),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-                    : SizedBox(
-                  height: 320,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: recommendations.map((manga) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: MangaWidgetRecomendation(
-                            title: manga['title'],
-                            imageUrl: manga['imageUrl'],
-                            status: manga['status'],
-                            score: manga['score'].toDouble(),
-                            rank: manga['rank'],
-                            description: manga['description'],
-                            chapters: manga['chapters'],
-                            genres: List<String>.from(manga['genres']),
-                            type: manga['type'],
-                            id: manga["id"],
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.arrow_back_ios_new_rounded,
+                                        size: 16),
+                                    padding: EdgeInsets.all(4),
+                                    constraints: BoxConstraints(),
+                                    onPressed: () =>
+                                        _scrollRecommendations(-300),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  IconButton(
+                                    icon: Icon(Icons.arrow_forward_ios_rounded,
+                                        size: 16),
+                                    padding: EdgeInsets.all(4),
+                                    constraints: BoxConstraints(),
+                                    onPressed: () =>
+                                        _scrollRecommendations(300),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        : SizedBox(
+                            height: 320,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: recommendations.map((manga) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: MangaWidgetRecomendation(
+                                      title: manga['title'],
+                                      imageUrl: manga['imageUrl'],
+                                      status: manga['status'],
+                                      score: manga['score'].toDouble(),
+                                      rank: manga['rank'],
+                                      description: manga['description'],
+                                      chapters: manga['chapters'],
+                                      genres:
+                                          List<String>.from(manga['genres']),
+                                      type: manga['type'],
+                                      id: manga["id"],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -347,16 +352,18 @@ class _SocialViewState extends State<SocialView> {
                                   } else if (snapshot.hasError ||
                                       !snapshot.hasData) {
                                     return friendWidget(
-                                      username: friend['name'],
-                                      image: null,
-                                      online: true,
-                                    );
+                                        username: friend['name'],
+                                        image: null,
+                                        online: true,
+                                        friendId: friend["friendship_id"],
+                                        func: _getFriends);
                                   } else {
                                     return friendWidget(
-                                      username: friend['name'],
-                                      image: snapshot.data,
-                                      online: true,
-                                    );
+                                        username: friend['name'],
+                                        image: snapshot.data,
+                                        online: true,
+                                        friendId: friend["friendship_id"],
+                                        func: _getFriends);
                                   }
                                 },
                               );
@@ -399,16 +406,18 @@ class _SocialViewState extends State<SocialView> {
                                   } else if (snapshot.hasError ||
                                       !snapshot.hasData) {
                                     return friendWidget(
-                                      username: friend['name'],
-                                      image: null,
-                                      online: false,
-                                    );
+                                        username: friend['name'],
+                                        image: null,
+                                        online: false,
+                                        friendId: friend['friendship_id'],
+                                        func: _getFriends);
                                   } else {
                                     return friendWidget(
-                                      username: friend['name'],
-                                      image: snapshot.data,
-                                      online: false,
-                                    );
+                                        username: friend['name'],
+                                        image: snapshot.data,
+                                        online: false,
+                                        friendId: friend['friendship_id'],
+                                        func: _getFriends);
                                   }
                                 },
                               );

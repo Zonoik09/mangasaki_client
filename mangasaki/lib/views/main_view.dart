@@ -125,128 +125,130 @@ class _MainViewState extends State<MainView> {
             ),
           ],
         ),
-        child: Column(
-          children: [
-            // Primera sección (título y subtítulo)
-            SizedBox(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  double screenWidth = MediaQuery.of(context).size.width;
-                  bool isMobile = screenWidth < 800;
-                  double fontSizeTitle = isMobile ? screenWidth * 0.06 : screenWidth * 0.04;
-                  double fontSizeSubtitle = isMobile ? screenWidth * 0.04 : screenWidth * 0.025;
-                  double titleSpacing = isMobile ? 10 : 40;
-                  double subtitleSpacing = isMobile ? 5 : 20;
+        child: SingleChildScrollView( // <- ¡aquí está el scroll!
+          child: Column(
+            children: [
+              // Primera sección (título y subtítulo)
+              SizedBox(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    double screenWidth = MediaQuery.of(context).size.width;
+                    bool isMobile = screenWidth < 800;
+                    double fontSizeTitle = isMobile ? screenWidth * 0.06 : screenWidth * 0.04;
+                    double fontSizeSubtitle = isMobile ? screenWidth * 0.04 : screenWidth * 0.025;
+                    double titleSpacing = isMobile ? 10 : 40;
+                    double subtitleSpacing = isMobile ? 5 : 20;
 
-                  return Column(
-                    children: [
-                      SizedBox(height: titleSpacing),
-                      Text(
-                        "The Next Generation of Manga Platform",
-                        style: TextStyle(
-                          fontSize: fontSizeTitle,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    return Column(
+                      children: [
+                        SizedBox(height: titleSpacing),
+                        Text(
+                          "The Next Generation of Manga Platform",
+                          style: TextStyle(
+                            fontSize: fontSizeTitle,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: subtitleSpacing),
-                      Text(
-                        "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
-                        style: TextStyle(
-                          fontSize: fontSizeSubtitle,
-                          color: Colors.white70,
+                        SizedBox(height: subtitleSpacing),
+                        Text(
+                          "Track your progress, share with others, and discover new manga you'll love with Mangasaki.",
+                          style: TextStyle(
+                            fontSize: fontSizeSubtitle,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  );
-                },
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-            // Segunda sección
-            if (_isMobile)
-              Column(
-                children: [
-                  CW_home(
-                    icon: "assets/images/stats.svg",
-                    title: "Discover and save your favorite mangas",
-                    subtitle:
-                        "Explore a wide collection of mangas, follow the chapters of your favorite series, and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
-                  ),
-                  CW_home(
-                    icon: "assets/images/social.svg",
-                    title: "Join the community!",
-                    subtitle:
-                        "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
-                  ),
-                ],
-              )
-            else
-              Row(
-                children: [
-                  Expanded(
-                    child: CW_home(
+              // Segunda sección
+              if (_isMobile)
+                Column(
+                  children: [
+                    CW_home(
                       icon: "assets/images/stats.svg",
                       title: "Discover and save your favorite mangas",
                       subtitle:
-                          "Explore a wide collection of mangas, follow the chapters of your favorite series, and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
+                      "Explore a wide collection of mangas and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
                     ),
-                  ),
-                  Expanded(
-                    child: CW_home(
+                    CW_home(
                       icon: "assets/images/social.svg",
                       title: "Join the community!",
                       subtitle:
-                          "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together. The fun never ends when you share your passions!",
+                      "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together",
                     ),
-                  ),
-                ],
-              ),
-            // Tercera sección
-            if (_isMobile)
-              Column(
-                children: [
-                  CW_home(
-                    icon: "assets/images/apps.svg",
-                    title: "Bring Mangasaki anywhere",
-                    subtitle:
-                    "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
-                  ),
-                  CW_home(
-                    icon: "assets/images/custom.svg",
-                    title: "Customized to your liking!",
-                    subtitle:
-                    "We have different themes to change the style of the app!",
-                  ),
-                ],
-              )
-            else
-              Row(
-                children: [
-                  Expanded(
-                    child: CW_home(
+                    CW_home(
                       icon: "assets/images/apps.svg",
                       title: "Bring Mangasaki anywhere",
                       subtitle:
-                          "Keep track of your progress on-the-go with one of many Mangasaki apps across iOS, Android, macOS, and Windows.",
+                      "Keep track of your progress on-the-go with one of many Mangasaki apps across Android, linux and Windows.",
                     ),
-                  ),
-                  Expanded(
-                    child: CW_home(
+                    CW_home(
                       icon: "assets/images/custom.svg",
                       title: "Customized to your liking!",
                       subtitle:
-                          "We have different themes to change the style of the app!",
+                      "You can customize your profile or your collections!",
                     ),
+                  ],
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32.0),
+                  child: Wrap(
+                    spacing: 32,
+                    runSpacing: 32,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 500,
+                        child: CW_home(
+                          icon: "assets/images/stats.svg",
+                          title: "Discover and save your favorite mangas",
+                          subtitle:
+                          "Explore a wide collection of mangas and save them to always have them at your fingertips. Take your reading experience to the next level and never lose track of your favorite manga!",
+                        ),
+                      ),
+                      SizedBox(
+                        width: 500,
+                        child: CW_home(
+                          icon: "assets/images/social.svg",
+                          title: "Join the community!",
+                          subtitle:
+                          "Add your friends, share your manga collections, and discover theirs. Share the mangas you've read and those on your to-read list to stay up-to-date and enjoy new recommendations together.",
+                        ),
+                      ),
+                      SizedBox(
+                        width: 500,
+                        child: CW_home(
+                          icon: "assets/images/apps.svg",
+                          title: "Bring Mangasaki anywhere",
+                          subtitle:
+                          "Keep track of your progress on-the-go with one of many Mangasaki apps across Android, linux and Windows.",
+                        ),
+                      ),
+                      SizedBox(
+                        width: 500,
+                        child: CW_home(
+                          icon: "assets/images/custom.svg",
+                          title: "Customized to your liking!",
+                          subtitle:
+                          "You can customize your profile or your collections!",
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-          ],
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

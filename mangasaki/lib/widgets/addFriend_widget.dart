@@ -1,6 +1,8 @@
 import 'dart:typed_data';  // Correcto, para usar Uint8List
 import 'package:flutter/material.dart';
 
+import '../views/profileFriend_view.dart';
+
 class AddFriendWidget extends StatelessWidget {
   final String username;
   final Uint8List image;
@@ -53,6 +55,18 @@ class AddFriendWidget extends StatelessWidget {
             ),
           ),
 
+          IconButton(
+            icon: Icon(Icons.person, color: Colors.blueAccent),
+            tooltip: 'profile of $username',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileFriendView(nickname: username),
+                ),
+              );
+            },
+          ),
           // Botón de añadir amigo
           IconButton(
             icon: const Icon(Icons.person_add, color: Colors.green),

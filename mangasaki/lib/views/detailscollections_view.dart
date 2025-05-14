@@ -372,6 +372,11 @@ class _DetailsProfileViewState extends State<DetailsProfileView> {
     };
     final jsonMessage = jsonEncode(message);
     final appData = Provider.of<AppData>(context, listen: false);
+    appData.onNotificationSent = (message) {
+      if (!mounted) return;
+      final snackBar = SnackBar(content: Text(message), backgroundColor: Colors.green,);
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    };
     appData.sendMessage(jsonMessage);
   }
 

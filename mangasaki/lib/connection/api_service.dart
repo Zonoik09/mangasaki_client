@@ -578,7 +578,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('No galleries have been created yet.');
+      throw Exception('No notifications have been created yet.');
     }
   }
 
@@ -610,7 +610,7 @@ class ApiService {
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
-      throw Exception('No galleries have been created yet.');
+      throw Exception(response.body);
     }
   }
 

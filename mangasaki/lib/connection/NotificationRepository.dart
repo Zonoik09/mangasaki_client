@@ -195,7 +195,7 @@ class NotificationRepository {
       iOS: iosDetails,
     );
 
-    int notificationId = DateTime.now().millisecondsSinceEpoch;
+    int notificationId = DateTime.now().millisecondsSinceEpoch % 2147483647;
 
 
     await flutterLocalNotificationsPlugin.show(

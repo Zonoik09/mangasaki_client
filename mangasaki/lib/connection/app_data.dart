@@ -23,6 +23,8 @@ class AppData extends ChangeNotifier {
   int _reconnectAttempts = 0;
   final int _maxReconnectAttempts = 5;
 
+  Function? onNotificationSent;
+
   AppData();
 
   void connectToWebSocket() {
@@ -158,8 +160,17 @@ class AppData extends ChangeNotifier {
           await _handleNotification(data);
           break;
         case "notificationSent":
+          print("📬 Notificación enviada confirmada por servidor.");
           print(data);
 
+          // Extraer el mensaje del servidor
+          String notificationMessage = data["message"] ?? "Notification sent successfully";
+
+          // Llamamos al callback y pasamos el mensaje
+          if (onNotificationSent != null) {
+            onNotificationSent!(notificationMessage);
+          }
+          break;
         default:
           print("ℹ️ Tipo de mensaje no manejado: ${data["type"]}");
       }
@@ -196,15 +207,15 @@ class AppData extends ChangeNotifier {
     } else if (subtype == "recommendation") {
       if (Platform.isWindows || Platform.isLinux) {
         Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
-        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+        final modifiedMessage = await replaceMangaIdWithTitle(data["data"]["message"]);
+        NotificationRepository.showMessageStyleNotification(modifiedMessage, image);
       } else {
-        NotificationRepository.showTestNotification(data["data"]["message"]);
+        final modifiedMessage = await replaceMangaIdWithTitle(data["data"]["message"]);
+        NotificationRepository.showTestNotification(modifiedMessage);
       }
+
     }
 
-    if (detail == "notificationSent") {
-      print("📬 Notificación enviada confirmada por servidor.");
-    }
   }
 
   void requestFriendsList(String username) {
@@ -213,6 +224,30 @@ class AppData extends ChangeNotifier {
       "username": username,
     });
     sendMessage(message);
+  }
+
+  int? _extractMangaId(String message) {
+    final RegExp exp = RegExp(r'"(\d+)"');
+    final match = exp.firstMatch(message);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+    return null;
+  }
+
+  /// Reemplaza el ID por el título real del manga
+  Future<String> replaceMangaIdWithTitle(String message) async {
+    final mangaId = _extractMangaId(message);
+    if (mangaId != null) {
+      try {
+        final mangaData = await ApiService().searchManga(mangaId);
+        final title = mangaData['title'];
+        return message.replaceFirst('"$mangaId"', '"$title"');
+      } catch (_) {
+        return message;
+      }
+    }
+    return message;
   }
 }
 

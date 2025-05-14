@@ -9,14 +9,16 @@ class friendWidget extends StatelessWidget {
   final String username;
   final Uint8List? image;
   final bool online;
+  final int friendId;
+  final Function func;
 
   const friendWidget({
     Key? key,
     required this.username,
     required this.image,
     required this.online,
-
-  }) : super(key: key);
+    required this.friendId, required this.func
+  }) : super();
 
   @override
   Widget build(BuildContext context) {
@@ -96,8 +98,9 @@ class friendWidget extends StatelessWidget {
                         onPressed: () async {
                           Navigator.of(context).pop(); // Cierra el diálogo
                           try {
-                            final result = await ApiService().deleteFriendship(1);
-                            print('Friend removed: $result');
+                            print(friendId);
+                            final result = await ApiService().deleteFriendship(friendId);
+                            func();
                           } catch (e) {
                             print('Error: $e');
                             // Muestra error si es necesario

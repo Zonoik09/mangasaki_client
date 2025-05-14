@@ -128,6 +128,12 @@ class _AddFriendViewState extends State<AddFriendView> {
                     final appData = Provider.of<AppData>(context, listen: false);
 
                     // Enviar el mensaje JSON a través de WebSocket como una cadena
+                    appData.onNotificationSent = (message) {
+                      if (!mounted) return;
+                      final snackBar = SnackBar(content: Text(message), backgroundColor: Colors.green,);
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    };
+
                     appData.sendMessage(messageJson);
 
                   },
