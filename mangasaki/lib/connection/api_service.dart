@@ -449,11 +449,11 @@ class ApiService {
   }
 
   // Metodo para borrar gallery
-  Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery, BuildContext context) async {
+  Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/delete_gallery');
 
     try {
-      final response = await http.post(
+      final response = await http.delete(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -464,14 +464,11 @@ class ApiService {
 
       if (response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        _showSnackPositiveBar(context, "Collection created successfully");
         return responseData;
       } else {
-        _handleError(response, context);
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Connection error or invalid data: $e');
       throw Exception('Connection error or invalid data: $e');
     }
   }

@@ -46,7 +46,9 @@ class _ProfileViewState extends State<ProfileView> {
     if (nickname != null) {
       final galleryData = await ApiService().getGallery(nickname!);
       if (galleryData['resultat'] != null) {
-        final fetchedCollections = List<Map<String, dynamic>>.from(galleryData['resultat']);
+        // Convertir a lista tipada
+        final List<Map<String, dynamic>> fetchedCollections =
+        List<Map<String, dynamic>>.from(galleryData['resultat']);
 
         // Sumar likes totales
         int likes = 0;
@@ -54,13 +56,16 @@ class _ProfileViewState extends State<ProfileView> {
           likes += (collection['likes'] ?? 0) as int;
         }
 
+        // Actualizar estado: limpiar y llenar la lista, actualizar likes
         setState(() {
-          collections = fetchedCollections;
+          collections.clear();
+          collections.addAll(fetchedCollections);
           totalLikes = likes;
         });
       }
     }
   }
+
 
   Future<void> fetchBannerImage() async {
     if (nickname != null) {
@@ -321,66 +326,131 @@ class _ProfileViewState extends State<ProfileView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text("Your Collections",
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w600)),
-                                IconButton(
-                                  icon: const Icon(Icons.add),
-                                  onPressed: () {
-                                    String collectionName = '';
-                                    bool isButtonEnabled = false;
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return StatefulBuilder(
-                                          builder: (context, setState) {
+                                const Text(
+                                  "Your Collections",
+                                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                                ),
+                                Row( // Nuevo Row que agrupa los botones
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.add),
+                                      onPressed: () {
+                                        String collectionName = '';
+                                        bool isButtonEnabled = false;
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return StatefulBuilder(
+                                              builder: (context, setState) {
+                                                return AlertDialog(
+                                                  title: const Text('New Collection'),
+                                                  content: TextField(
+                                                    onChanged: (value) {
+                                                      collectionName = value;
+                                                      setState(() {
+                                                        isButtonEnabled = value.trim().isNotEmpty;
+                                                      });
+                                                    },
+                                                    decoration: const InputDecoration(
+                                                      hintText: "Enter collection name",
+                                                    ),
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.of(context).pop(),
+                                                      child: const Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: isButtonEnabled
+                                                          ? () async {
+                                                        Navigator.of(context).pop();
+                                                        await ApiService().createGallery(nickname, collectionName);
+                                                        fetchCollections();
+                                                      }
+                                                          : null,
+                                                      child: const Text('Accept'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_forever),
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
                                             return AlertDialog(
-                                              title:
-                                                  const Text('New Collection'),
-                                              content: TextField(
-                                                onChanged: (value) {
-                                                  collectionName = value;
-                                                  setState(() {
-                                                    isButtonEnabled =
-                                                        value.trim().isNotEmpty;
-                                                  });
-                                                },
-                                                decoration: const InputDecoration(
-                                                    hintText:
-                                                        "Enter collection name"),
+                                              title: const Text('Delete Collection'),
+                                              content: SizedBox(
+                                                width: double.maxFinite,
+                                                child: collections.isEmpty
+                                                    ? const Text("No collections to delete.")
+                                                    : ListView.builder(
+                                                  shrinkWrap: true,
+                                                  itemCount: collections.length,
+                                                  itemBuilder: (context, index) {
+                                                    final collection = collections[index];
+                                                    final collectionName = collection['name'];
+
+                                                    return ListTile(
+                                                      title: Text(collectionName),
+                                                      trailing: const Icon(Icons.delete),
+                                                      onTap: () {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Confirm Deletion'),
+                                                              content: Text(
+                                                                  'Are you sure you want to delete "$collectionName"?'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.of(context).pop(); // Close confirm dialog
+                                                                  },
+                                                                  child: const Text('Cancel'),
+                                                                ),
+                                                                TextButton(
+                                                                  onPressed: () async {
+                                                                    Navigator.of(context).pop(); // Close confirm dialog
+                                                                    Navigator.of(context).pop(); // Close list dialog
+                                                                    await ApiService().deleteGallery(nickname!, collectionName);
+                                                                    fetchCollections();
+                                                                    _showSnackPositiveBar(context, "Collection has been deleted successfully");
+
+                                                                  },
+                                                                  child: const Text('Delete'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                ),
                                               ),
                                               actions: [
                                                 TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(context)
-                                                          .pop(),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: isButtonEnabled
-                                                      ? () async {
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                          await ApiService()
-                                                              .createGallery(
-                                                                  nickname,
-                                                                  collectionName);
-                                                          fetchCollections();
-                                                        }
-                                                      : null,
-                                                  child: const Text('Accept'),
+                                                  onPressed: () => Navigator.of(context).pop(),
+                                                  child: const Text('Close'),
                                                 ),
                                               ],
                                             );
                                           },
                                         );
                                       },
-                                    );
-                                  },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
+
                             const Divider(),
                             const SizedBox(height: 10),
 
@@ -449,6 +519,20 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
         )
+    );
+  }
+
+  void _showSnackPositiveBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style:
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 }
