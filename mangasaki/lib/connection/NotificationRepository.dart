@@ -6,11 +6,12 @@ import 'package:windows_notification/notification_message.dart';
 import 'package:windows_notification/windows_notification.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:typed_data';
 
 
-// Instanciamos el plugin de notificaciones globalmente
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+
 
 class Messaging {
   static late BuildContext openContext; // Se asigna desde main()
@@ -24,9 +25,6 @@ class NotificationRepository {
 
   static Future<void> initWindowsNotifications() async {
     _winNotifyPlugin.initNotificationCallBack((s) {
-      print(s.argrument);
-      print(s.userInput);
-      print(s.eventType);
     });
   }
 
@@ -38,22 +36,26 @@ class NotificationRepository {
     return file.path;
   }
 
-  static Future<void> showMessageStyleNotification() async {
-    const String url =
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Sample_User_Icon.png/240px-Sample_User_Icon.png";
+  static Future<void> showMessageStyleNotification(String mensaje, Uint8List imageFuture) async {
+    final tempDir = await getTemporaryDirectory();
+    final filePath = '${tempDir.path}/notificacion_imagen.png';
+    final file = File(filePath);
 
-    final imagePath = await getImageBytes(url);
+    final imageBytes = await imageFuture;
+
+    await file.writeAsBytes(imageBytes);
 
     NotificationMessage message = NotificationMessage.fromPluginTemplate(
-      "Nuevo mensaje",
-      "Juan te ha enviado un mensaje",
-      "Hola, ¿cómo estás?",
-      image: imagePath,
-      launch: "https://example.com",
+      "New Message",
+      "New Message",
+      mensaje,
+      image: filePath,
     );
 
     _winNotifyPlugin.showNotificationPluginTemplate(message);
   }
+
+
 
   static void showTextOnlyNotification() {
     NotificationMessage message = NotificationMessage.fromPluginTemplate(
@@ -74,13 +76,19 @@ class NotificationRepository {
     playSound: true,
   );
 
+  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
   static Future<void> notificationPlugin() async {
-    // Crear canal (solo Android)
+    await _requestPermissions();
+
+    // Crear canal de notificación en Android
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
+    // Solicitar permisos explícitos en iOS
     if (Platform.isIOS) {
       final bool? permissionGranted = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
@@ -98,12 +106,11 @@ class NotificationRepository {
       }
     }
 
-
-    // Configuración Android
+    // Configuración para Android
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Configuración iOS
+    // Configuración para iOS
     final DarwinInitializationSettings initializationSettingsDarwin =
     DarwinInitializationSettings(
       onDidReceiveLocalNotification: (id, title, body, payload) async {
@@ -125,6 +132,7 @@ class NotificationRepository {
       },
     );
 
+    // Unificar configuración
     final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
@@ -134,7 +142,6 @@ class NotificationRepository {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (details) async {
-        // Aquí debemos usar una pantalla válida
         await Navigator.push(
           Messaging.openContext,
           MaterialPageRoute(
@@ -145,7 +152,28 @@ class NotificationRepository {
     );
   }
 
-  static Future<void> showTestNotification() async {
+
+  static Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt >= 33) {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          await Permission.notification.request();
+        }
+      }
+    } else if (Platform.isIOS) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
+  }
+
+  static Future<void> showTestNotification(String mensaje) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'channel_id',
       'Channel Title',
@@ -153,7 +181,7 @@ class NotificationRepository {
       importance: Importance.high,
       color: Colors.blue,
       playSound: true,
-      icon: '@mipmap/ic_launcher',
+      icon: '@drawable/splash_logo',
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -167,12 +195,14 @@ class NotificationRepository {
       iOS: iosDetails,
     );
 
+    int notificationId = DateTime.now().millisecondsSinceEpoch % 2147483647;
+
+
     await flutterLocalNotificationsPlugin.show(
-      0, // ID de la notificación
-      'Test Notification', // Título
-      'This is a test notification!', // Mensaje
+      notificationId,
+      'Mangasaki',
+      mensaje,
       platformDetails,
-      payload: 'Test Payload', // Información adicional que puede ser útil para la navegación
     );
   }
 

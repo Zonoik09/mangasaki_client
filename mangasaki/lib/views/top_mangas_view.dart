@@ -51,6 +51,7 @@ class _TopMangasViewState extends State<TopMangasView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Top Mangas",
           style: TextStyle(
@@ -129,6 +130,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
                             )
                                 : MangaWidget(
                               title: manga['title'],
@@ -140,6 +142,7 @@ class _TopMangasViewState extends State<TopMangasView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
                             ),
                           );
                         },

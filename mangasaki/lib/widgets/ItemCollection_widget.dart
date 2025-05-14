@@ -7,13 +7,15 @@ class CollectionItemCard extends StatelessWidget {
   final String title;
   final Uint8List imagePath;
   final VoidCallback? onTap;
+  final int id;
+  final int likes;
 
   const CollectionItemCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.imagePath,
-    this.onTap,
-  }) : super(key: key);
+    this.onTap, required this.id, required this.likes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +24,13 @@ class CollectionItemCard extends StatelessWidget {
               () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => DetailsProfileView(collectionName: title,)),
+              MaterialPageRoute(builder: (context) => DetailsProfileView(collectionName: title, id: id, likes: likes,)),
             );
           },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.transparent,
-          border: Border.all(color: Colors.white),
+          color: Color.fromARGB(255, 60, 111, 150),
+          border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(8),

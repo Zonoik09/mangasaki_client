@@ -5,7 +5,6 @@ import 'package:mangasaki/widgets/addFriend_widget.dart';
 import 'package:provider/provider.dart';
 import '../connection/api_service.dart';
 import '../connection/app_data.dart';
-import '../connection/utils_websockets.dart';
 import 'login_view.dart';
 
 class AddFriendView extends StatefulWidget {
@@ -18,7 +17,7 @@ class AddFriendView extends StatefulWidget {
 }
 
 class _AddFriendViewState extends State<AddFriendView> {
-  Map<String, dynamic> users = {}; // Inicializar como un Map vacío
+  Map<String, dynamic> users = {};
   bool isLoading = true;
   Map<String, Uint8List> userImages = {}; // Para almacenar imágenes de cada usuario
 
@@ -29,11 +28,13 @@ class _AddFriendViewState extends State<AddFriendView> {
   }
 
   Future<void> fetchUsers(String letters) async {
+    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+    final userId = usuario["resultat"]["id"];
     try {
-      final result = await ApiService().getUsersFriends(letters);
+      final result = await ApiService().getUsersFriends(letters,userId);
       if (!mounted) return;
       setState(() {
-        users = result; // Asignar el Map de usuarios
+        users = result;
         isLoading = false;
       });
     } catch (e) {
@@ -50,7 +51,6 @@ class _AddFriendViewState extends State<AddFriendView> {
     if (userImages.containsKey(nickname)) {
       return userImages[nickname]!;
     }
-
     // Si la imagen no está en el cache, la descargamos
     try {
       final image = await ApiService().getUserImage(nickname);
@@ -63,15 +63,6 @@ class _AddFriendViewState extends State<AddFriendView> {
     }
   }
 
-  Future<Map<String, dynamic>> getUserInfo(String nickname) async {
-    try {
-      final id = await ApiService().getUserInfo(nickname);
-      return id;
-    } catch (e) {
-      throw Exception("Error al cargar el ID del usuario");
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +71,21 @@ class _AddFriendViewState extends State<AddFriendView> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 60, 111, 150),
       appBar: AppBar(
-        title: const Text("Agregar Amigos"),
-        backgroundColor: Color.fromARGB(255, 60, 111, 150),
+        title: const Text("Add friends", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color.fromARGB(255, 60, 111, 150),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            tooltip: 'Refrescar',
+            onPressed: () {
+              setState(() {
+                isLoading = true;
+              });
+              fetchUsers(widget.letters); // Vuelve a cargar los usuarios
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -106,19 +110,17 @@ class _AddFriendViewState extends State<AddFriendView> {
                   username: user['nickname'],
                   image: image, // Pasa la imagen cargada
                   onAddFriend: () async {
-                    print('Agregar a ${user['nickname']}');
-
                     // Obtener el ID del usuario al que deseas agregar
-                    final targetId = user['id'];
+                    final targetUsername = user['nickname'];
 
-                    final fromId = await getUserInfo(LoginScreen.username);
+                    final usuario = await ApiService().getUserInfo(LoginScreen.username);
+                    final fromId = usuario["resultat"]["id"];
 
                     // Crear un mapa con los datos del mensaje
                     Map<String, dynamic> messageData = {
-                      "type": "friendship_notification",
-                      "from": fromId,
-                      "targetId": targetId,
-                      "message": "Tienes una nueva solicitud de amistad"
+                      "type": "friend_request_notification",
+                      "sender_user_id": fromId,
+                      "receiver_username": targetUsername,
                     };
 
                     // Convertir el mapa a una cadena JSON
@@ -126,10 +128,15 @@ class _AddFriendViewState extends State<AddFriendView> {
                     final appData = Provider.of<AppData>(context, listen: false);
 
                     // Enviar el mensaje JSON a través de WebSocket como una cadena
+                    appData.onNotificationSent = (message) {
+                      if (!mounted) return;
+                      final snackBar = SnackBar(content: Text(message), backgroundColor: Colors.green,);
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    };
+
                     appData.sendMessage(messageJson);
 
-                  }
-                  ,
+                  },
                 );
               } else {
                 return Text('No se pudo cargar la imagen');

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; // Si es necesario para la navegación
+import 'package:mangasaki/views/login_view.dart';
 import 'package:mangasaki/views/manga_view.dart';
 
-class MangaWidget extends StatelessWidget {
+import '../connection/api_service.dart';
+
+class MangaCollectionWidget extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String status;
@@ -13,9 +16,11 @@ class MangaWidget extends StatelessWidget {
   final List<String> genres;
   final String type;
   final int id;
+  final String galleryName;
+  final Function refreshMangaList; // Agregamos esta función
 
-  const MangaWidget({
-    Key? key,
+  const MangaCollectionWidget({
+    super.key,
     required this.title,
     required this.imageUrl,
     required this.status,
@@ -26,7 +31,9 @@ class MangaWidget extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.id,
-  }) : super(key: key);
+    required this.galleryName,
+    required this.refreshMangaList,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +42,7 @@ class MangaWidget extends StatelessWidget {
         .trim();
     String newTitle = title;
     if (type != "Manga") {
-      newTitle = title+"  ($type)";
+      newTitle = "$title  ($type)";
     }
     return GestureDetector(
       onTap: () {
@@ -61,79 +68,94 @@ class MangaWidget extends StatelessWidget {
         builder: (context, constraints) {
           double cardWidth = constraints.maxWidth;
           double cardHeight = constraints.maxHeight;
-          return Card(
-            color: Color.fromARGB(255, 60, 111, 150),
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                Image.network(imageUrl, height: 200, fit: BoxFit.cover),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.7,
-                        ),
-                        child: Text(
-                          newTitle,
-                          style: TextStyle(fontSize: cardHeight < 190 ? 15 : 18, fontWeight: FontWeight.bold, color: Colors.amber),
-                        ),
-                      ),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.7,
-                        ),
-                        child: Text(
-                          cleanedDescription,
-                          style: TextStyle(fontSize: cardHeight < 190 ? 12 : 14, color: Colors.white),
-                          maxLines: cardHeight < 190 ? 2:3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return Stack(
+            children: [
+              Card(
+                color: Color.fromARGB(255, 60, 111, 150),
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 12),
+                    Image.network(imageUrl, height: 200, fit: BoxFit.cover),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: cardHeight * 0.2),
-                          cardWidth < 448.0
-                              ? Column(
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.7,
+                            ),
+                            child: Text(
+                              newTitle,
+                              style: TextStyle(fontSize: cardHeight < 190 ? 15 : 18, fontWeight: FontWeight.bold, color: Colors.amber),
+                            ),
+                          ),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.70,
+                            ),
+                            child: Text(
+                              cleanedDescription,
+                              style: TextStyle(fontSize: cardHeight < 190 ? 12 : 14, color: Colors.white),
+                              maxLines: cardHeight < 190 ? 2 : 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
+                              SizedBox(height: cardHeight * 0.2),
+                              cardWidth < 448.0
+                                  ? Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      starRating(score),
+                                      SizedBox(width: cardWidth * 0.03),
+                                      statusWidget(status),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8),
+                                  customRatingWidget(rank),
+                                ],
+                              )
+                                  : Row(
                                 children: [
                                   starRating(score),
                                   SizedBox(width: cardWidth * 0.03),
                                   statusWidget(status),
+                                  SizedBox(width: cardWidth < 562.0 ? cardWidth * 0.05 : cardWidth * 0.1, height: cardHeight < 190 ? cardHeight * 0.15 : cardHeight * 0.3),
+                                  customRatingWidget(rank),
                                 ],
                               ),
-                              SizedBox(height: 8),
-                              customRatingWidget(rank),
-                            ],
-                          )
-                              : Row(
-                            children: [
-                              starRating(score),
-                              SizedBox(width: cardWidth * 0.03),
-                              statusWidget(status),
-                              SizedBox(width: cardWidth < 562.0 ? cardWidth * 0.05 : cardWidth * 0.1, height: cardHeight < 190 ? cardHeight * 0.15: cardHeight * 0.3),
-                              customRatingWidget(rank),
                             ],
                           ),
                         ],
                       ),
-
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.white),
+                  onPressed: () async {
+                    ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
+                    await Future.delayed(const Duration(seconds: 1));
+                    refreshMangaList();
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
-
     );
   }
 
@@ -247,7 +269,10 @@ class MangaWidget extends StatelessWidget {
   }
 }
 
-class MangaWidgetMobile extends StatelessWidget {
+
+
+
+class MangaCollectionWidgetMobile extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String status;
@@ -258,9 +283,11 @@ class MangaWidgetMobile extends StatelessWidget {
   final List<String> genres;
   final String type;
   final int id;
+  final String galleryName;
+  final Function refreshMangaList;
 
-  const MangaWidgetMobile({
-    Key? key,
+  const MangaCollectionWidgetMobile({
+    super.key,
     required this.title,
     required this.imageUrl,
     required this.status,
@@ -271,7 +298,9 @@ class MangaWidgetMobile extends StatelessWidget {
     required this.genres,
     required this.type,
     required this.id,
-  }) : super(key: key);
+    required this.galleryName,
+    required this.refreshMangaList,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -310,17 +339,17 @@ class MangaWidgetMobile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Imagen del manga con status y estrellas debajo
+              // Imagen y status
               Column(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
                       imageUrl,
-                      width: 90,
-                      height: 120,
+                      width: 100,
+                      height: 150,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -330,10 +359,9 @@ class MangaWidgetMobile extends StatelessWidget {
                   starRating(score),
                 ],
               ),
-
               const SizedBox(width: 10),
 
-              // Detalles del manga a la derecha
+              // Detalles y título
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,13 +380,22 @@ class MangaWidgetMobile extends StatelessWidget {
                     Text(
                       cleanedDescription,
                       style: const TextStyle(fontSize: 12, color: Colors.white),
-                      maxLines: 3,
+                      maxLines: 4,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     customRatingWidget(rank),
                   ],
                 ),
+              ),
+
+              // Botón de eliminar
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () {
+                  ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
+                  refreshMangaList();
+                  },
               ),
             ],
           ),
@@ -476,5 +513,3 @@ class MangaWidgetMobile extends StatelessWidget {
     );
   }
 }
-
-

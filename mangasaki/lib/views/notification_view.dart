@@ -1,94 +1,160 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:mangasaki/widgets/invitation_widget.dart';
 
-class NotificationView extends StatelessWidget {
-  final List<String> friendRequests = ["JohnDoe", "Alice123", "Michael99", "Alexiutu", "pablo pablete","eskebere"]; // Lista de usuarios ficticios
+import '../connection/api_service.dart';
 
-  NotificationView({Key? key}) : super(key: key);
+class NotificationView extends StatefulWidget {
+  final int? userId;
 
-  bool _isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < 600;
+  const NotificationView({super.key, required this.userId});
+
+  static List<Map<String, dynamic>> friendRequests = [];
+
+  @override
+  State<NotificationView> createState() => NotificationViewState();
+}
+
+class NotificationViewState extends State<NotificationView> {
+  Map<String, Uint8List> userImages = {};
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    loadNotifications();
+    _timer = Timer.periodic(
+        const Duration(seconds: 10), (_) => loadNotifications());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// Obtiene las notificaciones desde la API y actualiza la lista de solicitudes de amistad.
+  Future<void> loadNotifications() async {
+    try {
+      final notifications = await ApiService().getNotifications(widget.userId);
+      final List<dynamic> data = notifications['data'];
+      setState(() {
+        NotificationView.friendRequests = List<Map<String, dynamic>>.from(data);
+      });
+    } catch (e) {
+      print("Error al cargar notificaciones: $e");
+    }
+  }
+
+  /// Carga la imagen de perfil de un usuario dado su nickname. Usa caché local.
+  Future<Uint8List> getUserImage(String nickname) async {
+    if (userImages.containsKey(nickname)) {
+      return userImages[nickname]!;
+    }
+    try {
+      final image = await ApiService().getUserImage(nickname);
+      userImages[nickname] = image;
+      return image;
+    } catch (e) {
+      throw Exception("Error al cargar la imagen del usuario");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isMobile = _isMobile(context);
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Notifications",
-          style: TextStyle(color: Colors.white),
-        ),
+        title:
+            const Text("Notifications", style: TextStyle(color: Colors.white)),
         backgroundColor: const Color.fromARGB(255, 60, 111, 150),
-        elevation: 2,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: loadNotifications,
+          ),
+        ],
       ),
       body: Container(
         color: const Color.fromARGB(255, 60, 111, 150),
-        child: isMobile
-            ? _buildMobileList()
-            : _buildDesktopGrid(), // Cambia entre lista y grid según el dispositivo
+        child: _buildMobileList(),
       ),
     );
   }
 
-  // Versión móvil con `ListView`
+  /// Construye la lista de notificaciones con distintos widgets según el tipo.
   Widget _buildMobileList() {
+    if (NotificationView.friendRequests.isEmpty) {
+      return const Center(
+          child:
+              Text("No notifications", style: TextStyle(color: Colors.white)));
+    }
+
     return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: friendRequests.length,
+      itemCount: NotificationView.friendRequests.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        return InvitationWidgetMobile(
-          username: friendRequests[index],
-          onAccept: () {
-            print("${friendRequests[index]} accepted");
-          },
-          onDecline: () {
-            print("${friendRequests[index]} declined");
+        final notif = NotificationView.friendRequests[index];
+        final username = notif['message'].split(' ').first;
+        final notificationId = notif['id'];
+        final type = notif['type'];
+
+        return FutureBuilder<Uint8List>(
+          future: getUserImage(username),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError || !snapshot.hasData) {
+              return const Text('Error loading image');
+            }
+
+            final image = snapshot.data!;
+
+            switch (type) {
+              case 'FRIEND_REQUEST':
+                return InvitationWidget(
+                  username: username,
+                  profileImageUrl: image,
+                  notificationId: notificationId,
+                  message: notif['message'],
+                  type: type,
+                );
+              case 'FRIEND':
+                return FriendAcceptedWidget(
+                  username: username,
+                  profileImageUrl: image,
+                  message: notif['message'],
+                  notificationId: notificationId,
+                  type: type,
+                );
+              case 'RECOMMENDATION':
+                return RecommendationWidget(
+                  username: username,
+                  profileImageUrl: image,
+                  message: notif['message'],
+                  notificationId: notificationId,
+                  type: type,
+                );
+              case 'LIKE':
+                return LikeNotificationWidget(
+                  username: username,
+                  profileImageUrl: image,
+                  message: notif['message'],
+                  notificationId: notificationId,
+                  type: type,
+                );
+              default:
+                return const Text("Unknown notification type");
+            }
           },
         );
       },
     );
   }
-
-  // Versión de escritorio con `GridView` adaptable
-  Widget _buildDesktopGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: friendRequests.length,
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 300,  
-        crossAxisSpacing: 20,     
-        mainAxisSpacing: 20,      // Espaciado vertical entre las tarjetas
-        childAspectRatio: 1,      // Mantiene proporción cuadrada
-      ),
-      itemBuilder: (context, index) {
-        return _buildFixedSizeCard(friendRequests[index]);
-      },
-    );
-  }
-
-  // Widget para el cuadrado con tamaño fijo
-    Widget _buildFixedSizeCard(String username) {
-      return SizedBox(
-        width: 250, // Ancho fijo
-        height: 400, // Altura fija
-        child: InvitationWidgetDesktop(
-          username: username,
-          profileImageUrl: "https://picsum.photos/200/300?grayscale",
-          onAccept: () {
-            print("$username Accepted");
-          },
-          onDecline: () {
-            print("$username Declined");
-          },
-        ),
-      );
-    }
-
 }

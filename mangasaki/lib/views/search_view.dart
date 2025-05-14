@@ -213,10 +213,16 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                     ),
                     SizedBox(width: 10),
                     ElevatedButton.icon(
-                      onPressed: _searchManga,
+                      onPressed: () {
+                        setState(() {
+                          _currentPage = 1;
+                        });
+                        _searchManga();
+                      },
                       icon: Icon(Icons.search),
                       label: Text('Filter'),
                     ),
+
                   ],
                 ),
 
@@ -279,6 +285,7 @@ class _MangaSearchViewState extends State<MangaSearchView> {
           return Scaffold(
             appBar: AppBar(
               title: Text('Manga Search'),
+              automaticallyImplyLeading: false,
               bottom: const PreferredSize(
                 preferredSize: Size.fromHeight(1.0),
                 child: Divider(
@@ -372,7 +379,12 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                         ),
                         SizedBox(width: 10),
                         ElevatedButton.icon(
-                          onPressed: _searchManga,
+                          onPressed: () {
+                            setState(() {
+                              _currentPage = 1;
+                            });
+                            _searchManga();
+                          },
                           icon: Icon(Icons.search),
                           label: Text('Filter'),
                         ),
@@ -483,6 +495,8 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
+
                             )
                                 : MangaWidget(
                               imageUrl: manga['images']['jpg']['image_url'],
@@ -494,6 +508,8 @@ class _MangaSearchViewState extends State<MangaSearchView> {
                               chapters: manga["chapters"] ?? -1,
                               genres: generos,
                               type: manga["type"],
+                              id: manga["mal_id"],
+
                             ),
                           );
                         },

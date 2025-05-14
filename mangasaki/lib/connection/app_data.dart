@@ -1,114 +1,253 @@
-import 'dart:convert';
 import 'dart:async';
-import 'dart:ui' as ui;
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'utils_websockets.dart';
+import 'package:flutter/material.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'NotificationRepository.dart';
+import 'api_service.dart';
+import 'friendManager.dart';
+import 'userStorage.dart';
+
+enum ConnectionStatus { disconnected, disconnecting, connecting, connected }
 
 class AppData extends ChangeNotifier {
-  // Atributs per gestionar la connexió
-  final WebSocketsHandler _wsHandler = WebSocketsHandler();
-  final String _wsServer = "mangasaki.ieti.site/ws";
-  final int _wsPort = 3000;
+  final String _serverUrl = "wss://mangasaki.ieti.site/ws";
+  WebSocketChannel? _channel;
+  String? socketId;
   bool isConnected = false;
+  ConnectionStatus connectionStatus = ConnectionStatus.disconnected;
+  static bool disconnectedForUser = false;
   int _reconnectAttempts = 0;
   final int _maxReconnectAttempts = 5;
-  final Duration _reconnectDelay = Duration(seconds: 3);
 
-  AppData() {
-    _connectToWebSocket();
-  }
+  Function? onNotificationSent;
 
+  AppData();
 
-  // Connectar amb el servidor (amb reintents si falla)
-  void _connectToWebSocket() {
-    if (_reconnectAttempts >= _maxReconnectAttempts) {
-      if (kDebugMode) {
-        print("S'ha assolit el màxim d'intents de reconnexió.");
-      }
+  void connectToWebSocket() {
+    if (connectionStatus == ConnectionStatus.connected || connectionStatus == ConnectionStatus.connecting) {
+      print("Ya estás conectado o intentando conectar.");
       return;
     }
 
-    isConnected = false;
+    connectionStatus = ConnectionStatus.connecting;
     notifyListeners();
 
-    _wsHandler.connectToServer(
-      _wsServer,
-      _wsPort,
-      _onWebSocketMessage,
-      onError: _onWebSocketError,
-      onDone: _onWebSocketClosed,
-    );
-
-    isConnected = true;
-    _reconnectAttempts = 0;
-    notifyListeners();
-  }
-
-  // Tractar un missatge rebut des del servidor
-  void _onWebSocketMessage(String message) {
     try {
-      var data = jsonDecode(message);
-      print(data);
+      _channel = WebSocketChannel.connect(Uri.parse(_serverUrl));
+      connectionStatus = ConnectionStatus.connected;
+      isConnected = true;
+      _reconnectAttempts = 0; // Reset reconnection attempts
+      notifyListeners();
+
+      _channel!.stream.listen(
+            (message) => _onMessageReceived(message),
+        onError: (error) {
+          print("❌ WebSocket error: $error");
+          _handleDisconnection();
+        },
+        onDone: () {
+          print("⚠️ WebSocket cerrado. Código: ${_channel!.closeCode}, Razón: ${_channel!.closeReason}");
+          _handleDisconnection();
+        },
+      );
+
+      print("✅ Conexión establecida.");
     } catch (e) {
-      if (kDebugMode) {
-        print("Error processant missatge WebSocket: $e");
-      }
+      print("❌ Error al conectar: $e");
+      _handleDisconnection();
     }
   }
 
-  // Tractar els errors de connexió
-  void _onWebSocketError(dynamic error) {
-    if (kDebugMode) {
-      print("Error de WebSocket: $error");
+  void _handleDisconnection() {
+    if (_channel != null) {
+      _channel!.sink.close();
     }
+
+    connectionStatus = ConnectionStatus.disconnected;
     isConnected = false;
     notifyListeners();
-    _scheduleReconnect();
-  }
 
-  // Tractar les desconnexions
-  void _onWebSocketClosed() {
-    if (kDebugMode) {
-      print("WebSocket tancat. Intentant reconnectar...");
+    // 👉 Verifica si la desconexión fue iniciada por el usuario
+    if (disconnectedForUser) {
+      print("🛑 Desconectado manualmente por el usuario. No se intentará reconectar.");
+      return;
     }
-    isConnected = false;
-    notifyListeners();
-    _scheduleReconnect();
-  }
 
-  // Programar una reconnexió (en cas que hagi fallat)
-  void _scheduleReconnect() {
-    if (_reconnectAttempts < _maxReconnectAttempts) {
-      _reconnectAttempts++;
-      if (kDebugMode) {
-        print(
-          "Intent de reconnexió #$_reconnectAttempts en ${_reconnectDelay.inSeconds} segons...",
-        );
-      }
-      Future.delayed(_reconnectDelay, () {
-        //_connectToWebSocket();
-      });
-    } else {
-      if (kDebugMode) {
-        print(
-          "No es pot reconnectar al servidor després de $_maxReconnectAttempts intents.",
-        );
-      }
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      print("❌ Máximo de intentos de reconexión alcanzado. Deteniendo intentos.");
+      return;
     }
+
+    int delaySeconds = 5 * (_reconnectAttempts + 1); // backoff exponencial simple
+    _reconnectAttempts++;
+
+    print("🔁 Reintentando conexión en $delaySeconds segundos (intento $_reconnectAttempts de $_maxReconnectAttempts)");
+
+    Future.delayed(Duration(seconds: delaySeconds), () {
+      connectToWebSocket();
+    });
   }
 
 
-  // Desconnectar-se del servidor
-  void disconnect() {
-    _wsHandler.disconnectFromServer();
-    isConnected = false;
-    notifyListeners();
-  }
-
-  // Enviar un missatge al servidor
   void sendMessage(String message) {
-    if (isConnected) {
-      _wsHandler.sendMessage(message);
+    if (_channel == null || connectionStatus != ConnectionStatus.connected) {
+      print("❌ No conectado. Mensaje no enviado.");
+      print("Estado de conexión: $connectionStatus");
+
+      if (connectionStatus == ConnectionStatus.disconnected) {
+        print("🔄 Reintentando conexión...");
+        connectToWebSocket();
+      }
+      return;
     }
+    _channel!.sink.add(message);
+    print("✅ Mensaje enviado: $message");
+  }
+
+  void _onMessageReceived(String message) async {
+    await Future.delayed(Duration(milliseconds: 500));
+
+    try {
+      final data = jsonDecode(message);
+      if (data is! Map<String, dynamic> || !data.containsKey("type")) return;
+
+      switch (data["type"]) {
+        case "welcome":
+          socketId = data["id"];
+          print("🟢 Conectado al servidor con ID: $socketId");
+
+          final userData = await UserStorage.getUserData();
+          if (userData != null && userData.containsKey("resultat")) {
+            final username = userData["resultat"]["nickname"];
+            final joinedMessage = jsonEncode({
+              "type": "joinedClientWithInfo",
+              "id": socketId,
+              "username": username,
+            });
+            sendMessage(joinedMessage);
+          } else {
+            print("⚠️ No se encontró nombre de usuario.");
+          }
+          break;
+
+        case "joinedClientWithInfoResponse":
+          print("🔄 joinedClientWithInfoResponse recibido.");
+          final userData = await UserStorage.getUserData();
+          if (userData != null && userData.containsKey("resultat")) {
+            final username = userData["resultat"]["nickname"];
+            requestFriendsList(username);
+          }
+          break;
+
+        case "amigosOnlineOfflineCompartidos":
+          print("🤝 Lista de amigos recibida.");
+          FriendManager().updateFriends(data["data"]);
+          break;
+
+        case "ping":
+          print("📡 Ping recibido del servidor.");
+          break;
+
+        case "newClient":
+          print("🆕 Nuevo cliente conectado.");
+          break;
+
+        case "notification":
+          await _handleNotification(data);
+          break;
+        case "notificationSent":
+          print("📬 Notificación enviada confirmada por servidor.");
+          print(data);
+
+          // Extraer el mensaje del servidor
+          String notificationMessage = data["message"] ?? "Notification sent successfully";
+
+          // Llamamos al callback y pasamos el mensaje
+          if (onNotificationSent != null) {
+            onNotificationSent!(notificationMessage);
+          }
+          break;
+        default:
+          print("ℹ️ Tipo de mensaje no manejado: ${data["type"]}");
+      }
+    } catch (e) {
+      print("❌ Error al procesar mensaje: $e");
+    }
+  }
+
+  Future<void> _handleNotification(Map<String, dynamic> data) async {
+    final subtype = data["subtype"];
+    final detail = data["detail"];
+
+    if (subtype == "friend_request") {
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
+    } else if (subtype == "friend") {
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
+    } else if (subtype == "like") {
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        NotificationRepository.showMessageStyleNotification(data["data"]["message"], image);
+      } else {
+        NotificationRepository.showTestNotification(data["data"]["message"]);
+      }
+    } else if (subtype == "recommendation") {
+      if (Platform.isWindows || Platform.isLinux) {
+        Uint8List image = await ApiService().getUserImage(data["data"]["sender_nickname"]);
+        final modifiedMessage = await replaceMangaIdWithTitle(data["data"]["message"]);
+        NotificationRepository.showMessageStyleNotification(modifiedMessage, image);
+      } else {
+        final modifiedMessage = await replaceMangaIdWithTitle(data["data"]["message"]);
+        NotificationRepository.showTestNotification(modifiedMessage);
+      }
+
+    }
+
+  }
+
+  void requestFriendsList(String username) {
+    final message = jsonEncode({
+      "type": "getFriendsOnlineOffline",
+      "username": username,
+    });
+    sendMessage(message);
+  }
+
+  int? _extractMangaId(String message) {
+    final RegExp exp = RegExp(r'"(\d+)"');
+    final match = exp.firstMatch(message);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+    return null;
+  }
+
+  /// Reemplaza el ID por el título real del manga
+  Future<String> replaceMangaIdWithTitle(String message) async {
+    final mangaId = _extractMangaId(message);
+    if (mangaId != null) {
+      try {
+        final mangaData = await ApiService().searchManga(mangaId);
+        final title = mangaData['title'];
+        return message.replaceFirst('"$mangaId"', '"$title"');
+      } catch (_) {
+        return message;
+      }
+    }
+    return message;
   }
 }
+

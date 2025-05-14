@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:file_picker/file_picker.dart'; // Para seleccionar archivos
-import 'package:mangasaki/connection/utils_websockets.dart';
 
 import '../views/main_view.dart';
 
@@ -171,7 +170,6 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        print("Se ha subido la imagen con éxito");
         return jsonDecode(response.body);
       } else {
         _showSnackBar(context, 'Error uploading the image');
@@ -197,15 +195,10 @@ class ApiService {
           'base64': base64File,
         }),
       );
-
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Banner updated successfully"))
-        );
+        _showSnackPositiveBar(context, "Banner updated successfully");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update banner"))
-        );
+        _showSnackBar(context, "Failed to update banner");
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -328,18 +321,6 @@ class ApiService {
     );
   }
 
-  static final encrypt.Key key =
-  encrypt.Key.fromUtf8('0123456789abcdef0123456789abcdef'); // 32 caracteres
-  static final encrypt.IV iv =
-  encrypt.IV.fromLength(16); // Vector de inicialización
-
-  // Metodo para encriptar la contraseña
-  String _encryptPassword(String password) {
-    final encrypter = encrypt.Encrypter(encrypt.AES(key));
-    final encrypted = encrypter.encrypt(password, iv: iv);
-    return encrypted.base64;
-  }
-
   // Corregir la función _showErrorSnackbar pasando el context correctamente
   void _showErrorSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -356,12 +337,16 @@ class ApiService {
   }
 
   // Obtener información del usuario
-  Future<Map<String, dynamic>> getUsersFriends(String letters) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/search/$letters');
+  Future<Map<String, dynamic>> getUsersFriends(String letters, int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUsersByCombination');
 
-    final response = await http.get(
+    final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'combination': letters,
+        'userId': id,
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -371,7 +356,7 @@ class ApiService {
     }
   }
 
-  // Obtener información del usuario
+  // Obtener imagen del usuario
   Future<Uint8List> getUserImage(String username) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/user/getUserImage/$username');
     final response = await http.get(url);
@@ -430,7 +415,6 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      print(json.decode(response.body));
       return json.decode(response.body);
     } else {
       throw Exception('No galleries have been created yet.');
@@ -438,22 +422,20 @@ class ApiService {
   }
 
   // Cambiar imagen de galery
-  Future<Map<String, dynamic>> changeGalleryPicture(String name, String username, String image, BuildContext context) async {
-    final url = Uri.parse('https://mangasaki.ieti.site/api/user/changeUserProfileImage');
+  Future<Map<String, dynamic>> changeGalleryPicture(int id, String image, BuildContext context) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/changeImage');
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nickname': username,
-          'name': name,
+          'id': id,
           'base64': image,
         }),
       );
 
       if (response.statusCode == 200) {
-        print("Se ha subido la imagen con éxito");
         return jsonDecode(response.body);
       } else {
         _showSnackBar(context, 'Error uploading the image');
@@ -467,11 +449,11 @@ class ApiService {
   }
 
   // Metodo para borrar gallery
-  Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery, BuildContext context) async {
+  Future<Map<String, dynamic>> deleteGallery(String username, String nameGalery) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/delete_gallery');
 
     try {
-      final response = await http.post(
+      final response = await http.delete(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -482,20 +464,17 @@ class ApiService {
 
       if (response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        _showSnackPositiveBar(context, "Collection created successfully");
         return responseData;
       } else {
-        _handleError(response, context);
         return {};
       }
     } catch (e) {
-      _showSnackBar(context, 'Connection error or invalid data: $e');
       throw Exception('Connection error or invalid data: $e');
     }
   }
 
   // Metodo para añadir un manga a la galeria
-  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, String mangaName) async {
+  Future<Map<String, dynamic>> addInGallery(String username, String nameGalery, int mangaId) async {
     final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/add_In_Gallery');
 
     try {
@@ -505,11 +484,279 @@ class ApiService {
         body: jsonEncode({
             "nickname": username,
             "galleryName": nameGalery,
-            "manganame": mangaName
+            "mangaid": mangaId
         }),
       );
 
       if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  // Metodo para borrar gallery
+  Future<Map<String, dynamic>> removeMangaGallery(String username, String nameGalery, int mangaid) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/remove_From_Gallery');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "nickname": username,
+          "galleryName": nameGalery,
+          "mangaid": mangaid
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> searchManga(int query) async {
+    final Uri url = Uri.parse("https://api.jikan.moe/v4/manga/$query");
+
+    try {
+      // Hacemos la solicitud GET a la API de Jikan
+      final response = await http.get(url);
+
+      // Verificamos que la respuesta sea exitosa
+      if (response.statusCode == 200) {
+        // Decodificamos la respuesta JSON
+        final data = json.decode(response.body);
+
+        // Obtenemos el primer manga de la lista
+        final Map<String, dynamic> manga = data['data'];
+
+        // Retornamos el mapa con la información relevante para el widget
+        return {
+          "title": manga['title'],
+          "author": manga['authors'][0]['name'] ?? "Desconocido",
+          "chapters": manga['chapters'] ?? 0,
+          "status": manga['status'],
+          "imageUrl": manga['images']['jpg']['image_url'],
+          "description": manga['synopsis'] ?? "Sin descripción",
+          "score": manga['score'] ?? 0.0,
+          "rank": manga['rank'] ?? 0,
+          "genres": List<String>.from(manga['genres'].map((genre) => genre['name'])),
+          "type": manga['type'],
+          "id": manga["mal_id"],
+        };
+      } else {
+        throw Exception('Error al obtener los mangas de la API');
+      }
+    } catch (e) {
+      // Si ocurre un error, lanzamos una excepción con el mensaje de error
+      throw Exception('Error al cargar los mangas: $e');
+    }
+  }
+
+  // Obtener las notificaciones
+  Future<Map<String, dynamic>> getNotifications(int? userId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/getUserNotifications/$userId');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('No notifications have been created yet.');
+    }
+  }
+
+  // declinar friend request
+  Future<Map<String, dynamic>> declineFriendRequest(int notificationId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/declineFriendRequest/$notificationId');
+
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+    int code = response.statusCode;
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('No es posible eliminar la solicitud: $code');
+    }
+  }
+
+  // Borrar amistad
+  Future<Map<String, dynamic>> deleteFriendship(int friendshipId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/deleteFriendship/$friendshipId');
+
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception(response.body);
+    }
+  }
+
+  // Obtener información de los mangas de las galerias
+  Future<Map<String, dynamic>> getMangaGallery(int id) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/gallery/getMangasGallery/$id');
+
+    final response = await http.get(
+      url,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener la información del usuario: ${response.statusCode}');
+    }
+  }
+
+  Future<List<int>> getRecommendedMangas(int userId) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/recommendations/$userId');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+
+        // Extraemos directamente la lista de IDs de mangas
+        final List<int> mangaIds = List<int>.from(jsonData['data']);
+
+        // Retornamos directamente la lista de IDs
+        return mangaIds;
+      } else {
+        throw Exception('Error al obtener recomendaciones');
+      }
+    } catch (e) {
+      throw Exception('Error al cargar las recomendaciones: $e');
+    }
+  }
+
+
+
+  Future<Map<String, dynamic>> getUserMangas(int id) async {
+    final url = Uri.parse(
+        'https://mangasaki.ieti.site/api/manga/getUserMangas'
+            '?userId=$id'
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+
+  Future<Map<String, dynamic>> removeMangaStatus(int id, int mangaid) async {
+    final url = Uri.parse(
+      'https://mangasaki.ieti.site/api/manga/deleteMangaStatus?userId=$id&mangaId=$mangaid',
+    );
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'accept': '*/*'}, // opcional pero copia de curl
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        print('Error ${response.statusCode}: ${response.body}');
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> mvMangaByStatus(int userId, String status, int mangaid) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/manga/mvMangaByStatus');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "userId": userId,
+          "mangaId": mangaid,
+          "status": status
+        }),
+      );
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteNotification(int notificationId, String type) async {
+    final url = Uri.parse('https://mangasaki.ieti.site/api/social/deleteNotification');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "type": type,
+          "notificationId": notificationId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      throw Exception('Connection error or invalid data: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> isLiked(int userId, int galleryId) async {
+    final url = Uri.parse(
+        'https://mangasaki.ieti.site/api/gallery/isLiked/$galleryId/$userId'
+    );
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         return responseData;
       } else {
