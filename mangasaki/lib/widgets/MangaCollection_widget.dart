@@ -68,44 +68,82 @@ class MangaCollectionWidget extends StatelessWidget {
         builder: (context, constraints) {
           double cardWidth = constraints.maxWidth;
           double cardHeight = constraints.maxHeight;
-          return Card(
-            color: Color.fromARGB(255, 60, 111, 150),
-            elevation: 5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.network(imageUrl, height: 200, fit: BoxFit.cover),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          newTitle,
-                          style: TextStyle(fontSize: cardHeight < 190 ? 15 : 18, fontWeight: FontWeight.bold, color: Colors.amber),
-                        ),
-                        Text(
-                          cleanedDescription,
-                          style: TextStyle(fontSize: cardHeight < 190 ? 12 : 14, color: Colors.white),
-                          maxLines: cardHeight < 190 ? 2 : 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            starRating(score),
-                            statusWidget(status),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+          return Stack(
+            children: [
+              Card(
+                color: Color.fromARGB(255, 60, 111, 150),
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                IconButton(
+                child: Row(
+                  children: [
+                    SizedBox(width: 12),
+                    Image.network(imageUrl, height: 200, fit: BoxFit.cover),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.7,
+                            ),
+                            child: Text(
+                              newTitle,
+                              style: TextStyle(fontSize: cardHeight < 190 ? 15 : 18, fontWeight: FontWeight.bold, color: Colors.amber),
+                            ),
+                          ),
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: cardWidth < 562.0 ? cardWidth * 0.6 : cardWidth * 0.70,
+                            ),
+                            child: Text(
+                              cleanedDescription,
+                              style: TextStyle(fontSize: cardHeight < 190 ? 12 : 14, color: Colors.white),
+                              maxLines: cardHeight < 190 ? 2 : 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(height: cardHeight * 0.2),
+                              cardWidth < 448.0
+                                  ? Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      starRating(score),
+                                      SizedBox(width: cardWidth * 0.03),
+                                      statusWidget(status),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8),
+                                  customRatingWidget(rank),
+                                ],
+                              )
+                                  : Row(
+                                children: [
+                                  starRating(score),
+                                  SizedBox(width: cardWidth * 0.03),
+                                  statusWidget(status),
+                                  SizedBox(width: cardWidth < 562.0 ? cardWidth * 0.05 : cardWidth * 0.1, height: cardHeight < 190 ? cardHeight * 0.15 : cardHeight * 0.3),
+                                  customRatingWidget(rank),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
                   icon: Icon(Icons.close, color: Colors.white),
                   onPressed: () async {
                     ApiService().removeMangaGallery(LoginScreen.username, galleryName, id);
@@ -113,8 +151,8 @@ class MangaCollectionWidget extends StatelessWidget {
                     refreshMangaList();
                   },
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
@@ -181,7 +219,57 @@ class MangaCollectionWidget extends StatelessWidget {
       ],
     );
   }
+
+  Widget customRatingWidget(int score) {
+    Color borderColor;
+    Color backgroundColor;
+    double fontSize;
+
+    if (score >= 1 && score <= 10) {
+      borderColor = Colors.amber;
+      backgroundColor = Colors.black;
+      fontSize = 18;
+    } else if (score >= 11 && score <= 20) {
+      borderColor = Colors.grey;
+      backgroundColor = Colors.black;
+      fontSize = 14;
+    } else if (score >= 21 && score <= 50) {
+      borderColor = Colors.blueAccent;
+      backgroundColor = Colors.white;
+      fontSize = 12;
+    } else if (score >= 51 && score <= 200) {
+      borderColor = Colors.green;
+      backgroundColor = Colors.white;
+      fontSize = 10;
+    } else {
+      borderColor = Colors.black;
+      backgroundColor = Colors.white;
+      fontSize = 8;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: borderColor,
+          width: 2,
+        ),
+      ),
+      child: Text(
+        '#$score',
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: borderColor,
+        ),
+      ),
+    );
+  }
 }
+
+
 
 
 class MangaCollectionWidgetMobile extends StatelessWidget {
